@@ -1,10 +1,10 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const CandidateService = require('../services/candidate.service');
-const auth = require('../middleware/auth');
+const CandidateService = require("../services/candidate.service");
+const auth = require("../middleware/auth");
 
 //candidate duplicate check-api
-router.post('/check', auth, async (req, res) => {
+router.post("/check", auth, async (req, res) => {
   try {
     const { pan, aadhaar, email, phone } = req.body;
     const hrId = req.user.id; // From auth middleware
@@ -13,7 +13,8 @@ router.post('/check', auth, async (req, res) => {
     if (!pan || !aadhaar || !email || !phone) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required fields: PAN, Aadhaar, Email, and Phone are required'
+        message:
+          "Missing required fields: PAN, Aadhaar, Email, and Phone are required",
       });
     }
 
@@ -22,31 +23,34 @@ router.post('/check', auth, async (req, res) => {
       pan,
       aadhaar,
       email,
-      phone
+      phone,
     });
 
     // Log the duplicate check for analytics
-    console.log(`Duplicate check performed by HR ${hrId}: ${duplicateCheck.hasDuplicates ? 'Duplicates found' : 'No duplicates'}`);
+    console.log(
+      `Duplicate check performed by HR ${hrId}: ${
+        duplicateCheck.hasDuplicates ? "Duplicates found" : "No duplicates"
+      }`
+    );
 
     return res.status(200).json({
       success: true,
       message: duplicateCheck.message,
       data: duplicateCheck.data,
-      hasDuplicates: duplicateCheck.hasDuplicates
+      hasDuplicates: duplicateCheck.hasDuplicates,
     });
-
   } catch (error) {
-    console.error('Error in candidate duplicate check:', error);
+    console.error("Error in candidate duplicate check:", error);
     return res.status(500).json({
       success: false,
-      message: 'Internal server error during duplicate check',
-      error: error.message
+      message: "Internal server error during duplicate check",
+      error: error.message,
     });
   }
 });
 
 // NEW: Comprehensive candidate + offer creation API
-router.post('/offers/create', auth, async (req, res) => {
+router.post("/offers/create", auth, async (req, res) => {
   try {
     const {
       // Candidate fields
@@ -65,7 +69,7 @@ router.post('/offers/create', auth, async (req, res) => {
       timeline,
       priority,
       competition,
-      tags
+      tags,
     } = req.body;
 
     const hrId = req.user.id;
@@ -74,14 +78,16 @@ router.post('/offers/create', auth, async (req, res) => {
     if (!pan || !aadhaar || !email || !phone || !name) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required candidate fields: PAN, Aadhaar, Email, Phone, and Name are required'
+        message:
+          "Missing required candidate fields: PAN, Aadhaar, Email, Phone, and Name are required",
       });
     }
 
     if (!position || !compensation) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required offer fields: Position and Compensation are required'
+        message:
+          "Missing required offer fields: Position and Compensation are required",
       });
     }
 
@@ -90,21 +96,21 @@ router.post('/offers/create', auth, async (req, res) => {
       pan,
       aadhaar,
       email,
-      phone
+      phone,
     });
 
     if (duplicateCheck.hasDuplicates) {
       return res.status(409).json({
         success: false,
-        message: 'Candidate already exists with duplicate information',
+        message: "Candidate already exists with duplicate information",
         data: duplicateCheck.data,
-        hasDuplicates: true
+        hasDuplicates: true,
       });
     }
 
     // Create candidate and offer in a single transaction
     const result = await CandidateService.createCandidateWithOffer(
-       {
+      {
         pan,
         aadhaar,
         email,
@@ -113,7 +119,7 @@ router.post('/offers/create', auth, async (req, res) => {
         location,
         profile,
         whatsappNumber,
-        consent
+        consent,
       },
       {
         position,
@@ -121,42 +127,36 @@ router.post('/offers/create', auth, async (req, res) => {
         timeline,
         priority,
         competition,
-        tags
+        tags,
       },
       hrId
     );
 
     return res.status(201).json(result);
-
   } catch (error) {
-    console.error('Error creating candidate with offer:', error);
+    console.error("Error creating candidate with offer:", error);
     return res.status(500).json({
       success: false,
-      message: 'Internal server error while creating candidate with offer',
-      error: error.message
+      message: "Internal server error while creating candidate with offer",
+      error: error.message,
     });
   }
 });
 
 // NEW: Direct offer creation for existing candidate
-router.post('/:candidateId/offer', auth, async (req, res) => {
+router.post("/:candidateId/offer", auth, async (req, res) => {
   try {
     const { candidateId } = req.params;
-    const {
-      position,
-      compensation,
-      timeline,
-      priority,
-      competition,
-      tags
-    } = req.body;
+    const { position, compensation, timeline, priority, competition, tags } =
+      req.body;
     const hrId = req.user.id;
 
     // Validate required fields
     if (!position || !compensation) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required offer fields: Position and Compensation are required'
+        message:
+          "Missing required offer fields: Position and Compensation are required",
       });
     }
 
@@ -165,7 +165,7 @@ router.post('/:candidateId/offer', auth, async (req, res) => {
     if (!candidate.success) {
       return res.status(404).json({
         success: false,
-        message: 'Candidate not found'
+        message: "Candidate not found",
       });
     }
 
@@ -178,19 +178,18 @@ router.post('/:candidateId/offer', auth, async (req, res) => {
         timeline,
         priority,
         competition,
-        tags
+        tags,
       },
       hrId
     );
 
     return res.status(201).json(result);
-
   } catch (error) {
-    console.error('Error creating offer for existing candidate:', error);
+    console.error("Error creating offer for existing candidate:", error);
     return res.status(500).json({
       success: false,
-      message: 'Internal server error while creating offer',
-      error: error.message
+      message: "Internal server error while creating offer",
+      error: error.message,
     });
   }
 });
@@ -205,7 +204,7 @@ router.post('/:candidateId/offer', auth, async (req, res) => {
 
 //   } catch (error) {
 //     console.error('Error fetching candidate:', error);
-    
+
 //     if (error.message === 'Candidate not found') {
 //       return res.status(404).json({
 //         success: false,
@@ -222,7 +221,7 @@ router.post('/:candidateId/offer', auth, async (req, res) => {
 // });
 
 //candidate update status-api
-router.put('/:id/status', auth, async (req, res) => {
+router.put("/:id/status", auth, async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -231,34 +230,37 @@ router.put('/:id/status', auth, async (req, res) => {
     if (!status) {
       return res.status(400).json({
         success: false,
-        message: 'Status is required'
+        message: "Status is required",
       });
     }
 
-    const result = await CandidateService.updateCandidateStatus(id, status, hrId);
+    const result = await CandidateService.updateCandidateStatus(
+      id,
+      status,
+      hrId
+    );
 
     return res.status(200).json(result);
-
   } catch (error) {
-    console.error('Error updating candidate status:', error);
-    
-    if (error.message === 'Candidate not found') {
+    console.error("Error updating candidate status:", error);
+
+    if (error.message === "Candidate not found") {
       return res.status(404).json({
         success: false,
-        message: 'Candidate not found'
+        message: "Candidate not found",
       });
     }
 
     return res.status(500).json({
       success: false,
-      message: 'Internal server error while updating candidate status',
-      error: error.message
+      message: "Internal server error while updating candidate status",
+      error: error.message,
     });
   }
 });
 
 //candidate search-api
-router.get('/search', auth, async (req, res) => {
+router.get("/search", auth, async (req, res) => {
   try {
     const {
       status,
@@ -266,18 +268,18 @@ router.get('/search', auth, async (req, res) => {
       experience,
       skills,
       page = 1,
-      limit = 10
+      limit = 10,
     } = req.query;
 
     const filters = {};
     if (status) filters.status = status;
     if (location) {
-      filters['location.city'] = { $regex: location, $options: 'i' };
+      filters["location.city"] = { $regex: location, $options: "i" };
     }
     if (experience) {
-      filters['profile.totalExperience'] = { $gte: parseInt(experience) };
+      filters["profile.totalExperience"] = { $gte: parseInt(experience) };
     }
-    if (skills) filters.skills = skills.split(',').map(s => s.trim());
+    if (skills) filters.skills = skills.split(",").map((s) => s.trim());
 
     const result = await CandidateService.searchCandidates(
       filters,
@@ -286,57 +288,56 @@ router.get('/search', auth, async (req, res) => {
     );
 
     return res.status(200).json(result);
-
   } catch (error) {
-    console.error('Error searching candidates:', error);
+    console.error("Error searching candidates:", error);
     return res.status(500).json({
       success: false,
-      message: 'Internal server error while searching candidates',
-      error: error.message
+      message: "Internal server error while searching candidates",
+      error: error.message,
     });
   }
 });
 
 //candidate analytics overview-api
-router.get('/analytics/overview', auth, async (req, res) => {
+router.get("/analytics/overview", auth, async (req, res) => {
   try {
     const result = await CandidateService.getCandidateAnalytics();
 
     return res.status(200).json(result);
-
   } catch (error) {
-    console.error('Error fetching candidate analytics:', error);
+    console.error("Error fetching candidate analytics:", error);
     return res.status(500).json({
       success: false,
-      message: 'Internal server error while fetching analytics',
-      error: error.message
+      message: "Internal server error while fetching analytics",
+      error: error.message,
     });
   }
 });
 
 //candidate recent activity-api
-router.get('/analytics/recent-activity', auth, async (req, res) => {
+router.get("/analytics/recent-activity", auth, async (req, res) => {
   try {
     const { limit = 10 } = req.query;
-    const recentActivity = await CandidateService.getRecentActivity(parseInt(limit));
+    const recentActivity = await CandidateService.getRecentActivity(
+      parseInt(limit)
+    );
 
     return res.status(200).json({
       success: true,
-      data: recentActivity
+      data: recentActivity,
     });
-
   } catch (error) {
-    console.error('Error fetching recent activity:', error);
+    console.error("Error fetching recent activity:", error);
     return res.status(500).json({
       success: false,
-      message: 'Internal server error while fetching recent activity',
-      error: error.message
+      message: "Internal server error while fetching recent activity",
+      error: error.message,
     });
   }
 });
 
-//candidate communicate-api   
-router.post('/:id/communicate', auth, async (req, res) => {
+//candidate communicate-api
+router.post("/:id/communicate", auth, async (req, res) => {
   try {
     const { id } = req.params;
     const { targetHrId, message, communicationType } = req.body;
@@ -345,18 +346,20 @@ router.post('/:id/communicate', auth, async (req, res) => {
     if (!targetHrId || !message) {
       return res.status(400).json({
         success: false,
-        message: 'Target HR ID and message are required'
+        message: "Target HR ID and message are required",
       });
     }
 
     // Get candidate and target HR details
     const candidate = await CandidateService.getCandidateById(id);
-    const targetHr = await require('../models/hrSchema').Hr.findById(targetHrId);
+    const targetHr = await require("../models/hrSchema").Hr.findById(
+      targetHrId
+    );
 
     if (!targetHr) {
       return res.status(404).json({
         success: false,
-        message: 'Target HR not found'
+        message: "Target HR not found",
       });
     }
 
@@ -374,40 +377,41 @@ ${req.user.name}
 ${req.user.company.name}`;
 
     // Add communication record
-    await CandidateService.updateCandidateStatus(id, 'MULTIPLE_OFFERS', hrId);
+    await CandidateService.updateCandidateStatus(id, "MULTIPLE_OFFERS", hrId);
 
     return res.status(200).json({
       success: true,
-      message: 'Communication initiated successfully',
+      message: "Communication initiated successfully",
       data: {
         whatsappMessage,
         targetHr: {
           name: targetHr.name,
           company: targetHr.company.name,
-          whatsapp: targetHr.whatsapp.phoneNumber
+          whatsapp: targetHr.whatsapp.phoneNumber,
         },
-        communicationType: communicationType || 'WHATSAPP_COORDINATION'
-      }
+        communicationType: communicationType || "WHATSAPP_COORDINATION",
+      },
     });
-
   } catch (error) {
-    console.error('Error initiating communication:', error);
+    console.error("Error initiating communication:", error);
     return res.status(500).json({
       success: false,
-      message: 'Internal server error while initiating communication',
-      error: error.message
+      message: "Internal server error while initiating communication",
+      error: error.message,
     });
   }
 });
 
 //candidate duplicate summary-api
-router.get('/duplicates/summary', auth, async (req, res) => {
+router.get("/duplicates/summary", auth, async (req, res) => {
   try {
     const duplicateRate = await CandidateService.calculateDuplicateRate();
-    const totalCandidates = await require('../models/candidate').countDocuments();
-    const candidatesWithCommunications = await require('../models/candidate').countDocuments({
-      'communications.0': { $exists: true }
-    });
+    const totalCandidates =
+      await require("../models/candidate").countDocuments();
+    const candidatesWithCommunications =
+      await require("../models/candidate").countDocuments({
+        "communications.0": { $exists: true },
+      });
 
     return res.status(200).json({
       success: true,
@@ -415,16 +419,15 @@ router.get('/duplicates/summary', auth, async (req, res) => {
         duplicateRate: Math.round(duplicateRate * 100) / 100,
         totalCandidates,
         candidatesWithCommunications,
-        resolutionNeeded: candidatesWithCommunications
-      }
+        resolutionNeeded: candidatesWithCommunications,
+      },
     });
-
   } catch (error) {
-    console.error('Error fetching duplicate summary:', error);
+    console.error("Error fetching duplicate summary:", error);
     return res.status(500).json({
       success: false,
-      message: 'Internal server error while fetching duplicate summary',
-      error: error.message
+      message: "Internal server error while fetching duplicate summary",
+      error: error.message,
     });
   }
 });
