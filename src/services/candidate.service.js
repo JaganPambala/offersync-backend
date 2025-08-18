@@ -108,9 +108,9 @@ class CandidateService {
   static generateRecommendations(candidatesWithOffers) {
     const recommendations = [];
 
-    candidatesWithOffers.forEach(({ candidate, offers, hrContact }) => {
-      const activeOffers = offers.filter(offer => offer.status === 'ACTIVE');
-      const acceptedOffers = offers.filter(offer => offer.status === 'ACCEPTED');
+    candidatesWithOffers.forEach(({ candidate, existingOffers, hrContact }) => {
+      const activeOffers = existingOffers.filter(offer => offer.status === 'ACTIVE');
+      const acceptedOffers = existingOffers.filter(offer => offer.status === 'ACCEPTED');
 
       if (acceptedOffers.length > 0) {
         recommendations.push({
@@ -120,17 +120,20 @@ class CandidateService {
           priority: 'HIGH'
         });
       } else if (activeOffers.length > 0) {
+        // Only include HRs from active offers who need to be coordinated with
+        const activeHrContacts = activeOffers.map(o => o.hr);
+        
         recommendations.push({
           type: 'INFO',
           message: `Candidate ${candidate.name} has ${activeOffers.length} active offer(s). Coordinate with other HRs.`,
           action: 'WHATSAPP_COORDINATION',
           priority: 'MEDIUM',
-          hrContacts: [hrContact, ...activeOffers.map(o => o.hr)]
+          hrContacts: activeHrContacts
         });
       }
 
       // Check for competitive offers
-      const competitiveOffers = offers.filter(offer => 
+      const competitiveOffers = existingOffers.filter(offer => 
         offer.compensation && offer.compensation.total > 0
       );
       
@@ -159,6 +162,11 @@ class CandidateService {
     try {
       const { pan, aadhaar, email, phone, name, location, profile, whatsappNumber, consent } = candidateData;
       
+      // Validate required consents before proceeding
+      if (!consent || !consent.dataSharing) {
+        throw new Error('Data sharing consent is required to create candidate profile');
+      }
+
       // Hash sensitive data
       const hashedPAN = this.hashData(pan);
       const hashedAadhaar = this.hashData(aadhaar);
@@ -170,13 +178,18 @@ class CandidateService {
         hashedAadhaar,
         email: email.toLowerCase(),
         phone,
+        whatsappNumber,
         location,
         profile,
+        consent: {
+          ...consent,
+          consentDate: new Date()
+        },
         source: {
           addedBy: hrId,
           method: 'MANUAL'
         },
-        status: 'OFFERED', // Set status to OFFERED since we're creating an offer
+        status: 'OFFERED',
         metrics: {
           totalOffers: 1,
           activeOffers: 1,
@@ -185,8 +198,21 @@ class CandidateService {
         }
       });
 
+      // If WhatsApp consent not given, don't allow WhatsApp communications
+      if (!consent.whatsappContact) {
+        delete newCandidate.whatsappNumber;
+      }
+
       // Save candidate
       const savedCandidate = await newCandidate.save();
+
+      // Calculate initial competition (should be false as this is first offer)
+      const competition = {
+        isCompetitive: false,
+        competitorCount: 0,
+        marketRank: 'LEADING',
+        collaborationNeeded: false
+      };
       
       // Create offer
       const newOffer = new Offer({
@@ -197,7 +223,7 @@ class CandidateService {
         timeline: offerData.timeline,
         status: 'ACTIVE',
         priority: offerData.priority || 'MEDIUM',
-        competition: offerData.competition,
+        competition,  // Use calculated competition
         tags: offerData.tags
       });
 
@@ -241,6 +267,32 @@ class CandidateService {
    */
   static async createOfferForExistingCandidate(candidateId, offerData, hrId) {
     try {
+      // Calculate competition based on existing offers
+      const existingActiveOffers = await Offer.find({
+        candidateId,
+        status: 'ACTIVE'
+      });
+
+      // Determine candidate status based on offer count
+      const candidateStatus = existingActiveOffers.length > 0 ? 'MULTIPLE_OFFERS' : 'OFFERED';
+
+      // Update candidate status
+      await Candidate.findByIdAndUpdate(candidateId, {
+        $set: { status: candidateStatus },
+        $inc: { 
+          'metrics.totalOffers': 1,
+          'metrics.activeOffers': 1
+        }
+      });
+
+      // Calculate competition info
+      const competition = {
+        isCompetitive: existingActiveOffers.length > 0,
+        competitorCount: existingActiveOffers.length,
+        marketRank: existingActiveOffers.length > 2 ? 'BELOW_MARKET' : 
+                   existingActiveOffers.length > 0 ? 'COMPETITIVE' : 'LEADING'
+      };
+
       // Create offer
       const newOffer = new Offer({
         candidateId,
@@ -250,21 +302,30 @@ class CandidateService {
         timeline: offerData.timeline,
         status: 'ACTIVE',
         priority: offerData.priority || 'MEDIUM',
-        competition: offerData.competition,
+        competition,
         tags: offerData.tags
       });
 
       // Save offer
       const savedOffer = await newOffer.save();
 
-      // Update candidate status and metrics
-      await Candidate.findByIdAndUpdate(candidateId, {
-        $set: { status: 'OFFERED' },
-        $inc: { 
-          'metrics.totalOffers': 1,
-          'metrics.activeOffers': 1
-        }
-      });
+      // Update competition for all existing active offers
+      if (existingActiveOffers.length > 0) {
+        const updatedCompetition = {
+          isCompetitive: true,
+          competitorCount: existingActiveOffers.length + 1,
+          marketRank: existingActiveOffers.length + 1 > 2 ? 'BELOW_MARKET' : 'COMPETITIVE'
+        };
+
+        await Offer.updateMany(
+          { 
+            candidateId,
+            status: 'ACTIVE',
+            _id: { $ne: savedOffer._id }
+          },
+          { $set: { competition: updatedCompetition } }
+        );
+      }
 
       // Update HR stats
       await Hr.findByIdAndUpdate(hrId, {

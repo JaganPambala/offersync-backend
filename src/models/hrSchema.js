@@ -63,7 +63,7 @@ const hrSchema = new mongoose.Schema({
             state: String,
            country:{type:String, default:"India"}
         },
-        logo:String,
+       
     },
     role:{
         type: String,

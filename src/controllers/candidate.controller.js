@@ -46,7 +46,7 @@ router.post('/check', auth, async (req, res) => {
 });
 
 // NEW: Comprehensive candidate + offer creation API
-router.post('/with-offer', auth, async (req, res) => {
+router.post('/offers/create', auth, async (req, res) => {
   try {
     const {
       // Candidate fields
@@ -195,31 +195,31 @@ router.post('/:candidateId/offer', auth, async (req, res) => {
   }
 });
 
-//candidate get by id-api
-router.get('/:id', auth, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const result = await CandidateService.getCandidateById(id);
+// //candidate get by id-api
+// router.get('/:id', auth, async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const result = await CandidateService.getCandidateById(id);
 
-    return res.status(200).json(result);
+//     return res.status(200).json(result);
 
-  } catch (error) {
-    console.error('Error fetching candidate:', error);
+//   } catch (error) {
+//     console.error('Error fetching candidate:', error);
     
-    if (error.message === 'Candidate not found') {
-      return res.status(404).json({
-        success: false,
-        message: 'Candidate not found'
-      });
-    }
+//     if (error.message === 'Candidate not found') {
+//       return res.status(404).json({
+//         success: false,
+//         message: 'Candidate not found'
+//       });
+//     }
 
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error while fetching candidate',
-      error: error.message
-    });
-  }
-});
+//     return res.status(500).json({
+//       success: false,
+//       message: 'Internal server error while fetching candidate',
+//       error: error.message
+//     });
+//   }
+// });
 
 //candidate update status-api
 router.put('/:id/status', auth, async (req, res) => {

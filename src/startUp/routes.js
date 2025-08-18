@@ -4,6 +4,7 @@ const candidateRoutes = require('../controllers/candidate.controller');
 const companyRoutes = require('../controllers/company');
 const hrRoutes = require('../controllers/Hr.controller');
 const offerRoutes = require('../controllers/offers.controller');
+const communicationRoutes = require('../controllers/communication.controller');
 
 module.exports = function(app) {
     console.log('Routes loaded');
@@ -12,6 +13,7 @@ module.exports = function(app) {
     if (hrRoutes) app.use('/api/hr', hrRoutes);
     if (candidateRoutes) app.use('/api/candidate', candidateRoutes);
     if (offerRoutes) app.use('/api/offers', offerRoutes);
+    if (communicationRoutes) app.use('/api/communication', communicationRoutes);
 }
 
 

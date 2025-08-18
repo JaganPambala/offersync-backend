@@ -46,7 +46,6 @@ const candidateSchema = new mongoose.Schema({
       currentRole: String,
       totalExperience: Number, // months
       skills: [String],
-      preferredRoles: [String],
       salaryRange: {
         min: Number,
         max: Number,
