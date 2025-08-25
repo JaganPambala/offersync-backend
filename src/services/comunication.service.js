@@ -6,93 +6,108 @@ const { Hr } = require("../models/hrSchema");
 const Candidate = require("../models/candidate");
 
 class CommunicationService {
-  /**
-   * Initiate a new communication between HRs
-   */
+  
   static async initiateCommunication(data) {
-    try {
-      const { initiatorHR, recipientHR, candidate, offers } = data;
+      try {
+        const { initiatorHR, recipientHR, candidate, offers } = data;
 
-      // Validate existence of entities
-      const [candidateExists, initiatorExists, recipientExists] =
-        await Promise.all([
+        // Validate existence of entities
+        const [candidateExists, initiatorExists, recipientExists] = await Promise.all([
           Candidate.findById(candidate._id),
           Hr.findById(initiatorHR._id),
           Hr.findById(recipientHR._id),
         ]);
 
-      if (!candidateExists) throw new Error("Candidate not found");
-      if (!initiatorExists) throw new Error("Initiator HR not found");
-      if (!recipientExists) throw new Error("Recipient HR not found");
+        if (!candidateExists) throw new Error("Candidate not found");
+        if (!initiatorExists) throw new Error("Initiator HR not found");
+        if (!recipientExists) throw new Error("Recipient HR not found");
 
-      // Validate offers
-      const offerDocs = await Offer.find({
-        _id: { $in: offers.map((o) => o._id) },
-      });
-
-      if (offerDocs.length !== 2) {
-        throw new Error("Both offers must exist");
-      }
-
-      // First generate the message and WhatsApp link
-      const message = this.generateMessage(candidate.name, offers);
-      const whatsappLink = this.generateWhatsAppLink(
-        recipientHR.whatsapp,
-        message
-      );
-
-      // Create communication record
-      const communication = new WhatsAppCommunication({
-        trackingId: `COM-${Date.now()}`,
-        candidateId: candidate._id,
-        initiatorHrId: initiatorHR._id,
-        recipientHrId: recipientHR._id,
-
-        whatsapp: {
-          message: message,
-          recipientPhone: recipientHR.whatsapp,
-          templateUsed: "DUPLICATE_OFFER",
-          deepLink: whatsappLink, // Added the required deepLink property
-        },
-
-        status: "INITIATED",
-        offers: offers.map((offer) => ({
-          offerId: offer._id,
-          role: offer.hr._id === initiatorHR._id ? "INITIATOR" : "RECIPIENT",
-        })),
-
-        metrics: {
-          generatedAt: new Date(),
-        },
-      });
-
-      await communication.save();
-
-      // Update offers to ON_HOLD
-      await Offer.updateMany(
-        { _id: { $in: offers.map((o) => o._id) } },
-        {
-          status: "ON_HOLD",
-          $push: {
-            statusHistory: {
-              previousStatus: "ACTIVE",
-              newStatus: "ON_HOLD",
-              reason: "Duplicate offer coordination initiated",
-              updatedAt: new Date(),
-            },
-          },
+        // Validate offers
+        const offerIds = offers.map((o) => o._id);
+        const offerDocs = await Offer.find({ _id: { $in: offerIds } });
+        if (offerDocs.length !== 2) {
+          throw new Error("Both offers must exist");
         }
-      );
 
-      return {
-        communicationId: communication._id,
-        trackingId: communication.trackingId,
-        whatsappLink,
-      };
-    } catch (error) {
-      console.error("Error in initiateCommunication:", error);
-      throw error;
-    }
+        // Check for existing communication
+        const existingComm = await WhatsAppCommunication.findOne({
+          candidateId: candidate._id,
+          initiatorHrId: initiatorHR._id,
+          recipientHrId: recipientHR._id,
+          'offers.offerId': { $all: offerIds },
+          status: { $ne: "RESOLVED" }, // Only check for active communications
+        });
+
+        if (existingComm) {
+          // Return existing communication info
+          return {
+            communicationId: existingComm._id,
+            trackingId: existingComm.trackingId,
+            whatsappLink: existingComm.whatsapp?.deepLink,
+            alreadyExists: true,
+          };
+        }
+
+        // First generate the message and WhatsApp link
+        const message = this.generateMessage(candidate.name, offers);
+        const whatsappLink = this.generateWhatsAppLink(recipientHR.whatsapp, message);
+
+        // Create communication record
+        const communication = new WhatsAppCommunication({
+          trackingId: `COM-${Date.now()}`,
+          candidateId: candidate._id,
+          initiatorHrId: initiatorHR._id,
+          recipientHrId: recipientHR._id,
+          whatsapp: {
+            message: message,
+            recipientPhone: recipientHR.whatsapp,
+            templateUsed: "DUPLICATE_OFFER",
+            deepLink: whatsappLink,
+          },
+          status: "INITIATED",
+          offers: offers.map((offer) => ({
+            offerId: offer._id,
+            role: offer.hr._id === initiatorHR._id ? "INITIATOR" : "RECIPIENT",
+          })),
+          metrics: {
+            generatedAt: new Date(),
+          },
+        });
+
+        await communication.save();
+
+        // Update offers to ON_HOLD
+        await Offer.updateMany(
+          { _id: { $in: offerIds } },
+          {
+            status: "ON_HOLD",
+            $push: {
+              statusHistory: {
+                previousStatus: "ACTIVE",
+                newStatus: "ON_HOLD",
+                reason: "Duplicate offer coordination initiated",
+                updatedAt: new Date(),
+              },
+            },
+          }
+        );
+
+        // Rule 4: Set all candidate's offers to ON_HOLD when communication starts
+        await Offer.updateMany(
+          { candidateId: candidateId },
+          { $set: { status: "ON_HOLD" } }
+        );
+
+        return {
+          communicationId: communication._id,
+          trackingId: communication.trackingId,
+          whatsappLink,
+          alreadyExists: false,
+        };
+      } catch (error) {
+        console.error("Error in initiateCommunication:", error);
+        throw error;
+      }
   }
 
   /**
@@ -162,6 +177,7 @@ class CommunicationService {
    * Record communication outcome
    */
   static async recordOutcome(communicationId, outcomeDetails, hrId) {
+    console.log("Recording outcome for communication:", outcomeDetails);
     try {
       const communication = await WhatsAppCommunication.findById(
         communicationId
@@ -202,6 +218,26 @@ class CommunicationService {
         case "CANDIDATE_WITHDREW":
           await this.handleCandidateWithdrawal(communication, offerUpdates);
           break;
+        case "OFFER_ACCEPTED": {
+          const { acceptedOfferId, candidateId } = offerUpdates;
+
+          // Accept the chosen offer
+          await Offer.findByIdAndUpdate(acceptedOfferId, { status: "ACCEPTED" });
+
+          // Reject/withdraw all other offers for the candidate
+          await Offer.updateMany(
+            {
+              candidateId: candidateId,
+              _id: { $ne: acceptedOfferId },
+              status: { $in: ["ACTIVE", "ON_HOLD"] }
+            },
+            { $set: { status: "REJECTED" } }
+          );
+
+          // Update candidate status
+          await Candidate.findByIdAndUpdate(candidateId, { status: "ACCEPTED" });
+          break;
+        }
       }
 
       communication.status = "RESOLVED";
@@ -297,6 +333,7 @@ class CommunicationService {
             id: otherParty._id.toString(),
             name: otherParty.name,
             company: otherParty.company.name,
+            whatsapp: otherParty.whatsapp.phoneNumber,
           },
           status: comm.status,
           role: isInitiator ? "INITIATOR" : "RECIPIENT",
@@ -351,6 +388,9 @@ Can we coordinate on this?`;
   // Outcome handlers
   static async handleTimelineAgreement(communication, updates) {
     const { postponedOfferId, newJoinDate } = updates;
+    console.log(newJoinDate, postponedOfferId);
+
+  
 
     // 1. Update postponed offer
     await Offer.findByIdAndUpdate(postponedOfferId, {
@@ -417,7 +457,7 @@ Can we coordinate on this?`;
   }
 
   static async handleCandidateWithdrawal(communication, updates) {
-    const { withdrawnOfferId } = updates;
+    const { withdrawnOfferId, reason } = updates;
 
     await Offer.findByIdAndUpdate(withdrawnOfferId, {
       status: "WITHDRAWN",
@@ -425,7 +465,7 @@ Can we coordinate on this?`;
         statusHistory: {
           previousStatus: "ON_HOLD",
           newStatus: "WITHDRAWN",
-          reason: "Candidate withdrew",
+          reason:reason,
           updatedAt: new Date(),
         },
       },

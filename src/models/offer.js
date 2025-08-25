@@ -50,6 +50,7 @@ const offerSchema = new mongoose.Schema({
     // Status Management (Core Feature)
     status: {
       type: String,
+
       enum: [
         'DRAFT', 'ACTIVE', 'ACCEPTED', 'REJECTED', 
         'EXPIRED', 'WITHDRAWN', 'ON_HOLD', 'JOINED'

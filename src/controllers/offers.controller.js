@@ -37,15 +37,26 @@ router.get('/', auth, async (req, res) => {
 // Update status
 router.patch('/:id/status', auth, async (req, res) => {
   try {
-    const { 
+    const {
       status,
-      validTill,    // Add these new fields
-      followUpDate  // from the UI
+      validTill,
+      followUpDate
     } = req.body;
+
+    // Fetch the offer to check ownership
+    const offer = await OfferService.getOfferById(req.params.id);
+    if (!offer) {
+      return res.status(404).json({ success: false, message: 'Offer not found' });
+    }
+
+    // Only allow the HR who owns the offer to update
+    if (offer.hrId._id.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'You are not authorized to update this offer.' });
+    }
 
     // First update the status
     const updated = await OfferService.updateStatus(
-      req.params.id, 
+      req.params.id,
       status,
       {
         validTill,

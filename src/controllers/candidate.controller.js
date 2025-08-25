@@ -194,70 +194,71 @@ router.post("/:candidateId/offer", auth, async (req, res) => {
   }
 });
 
-// //candidate get by id-api
-// router.get('/:id', auth, async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const result = await CandidateService.getCandidateById(id);
-
-//     return res.status(200).json(result);
-
-//   } catch (error) {
-//     console.error('Error fetching candidate:', error);
-
-//     if (error.message === 'Candidate not found') {
-//       return res.status(404).json({
-//         success: false,
-//         message: 'Candidate not found'
-//       });
-//     }
-
-//     return res.status(500).json({
-//       success: false,
-//       message: 'Internal server error while fetching candidate',
-//       error: error.message
-//     });
-//   }
-// });
-
-//candidate update status-api
-router.put("/:id/status", auth, async (req, res) => {
+//candidate get by id-api
+router.get('/:id', auth, async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
-    const hrId = req.user.id;
-
-    if (!status) {
-      return res.status(400).json({
-        success: false,
-        message: "Status is required",
-      });
-    }
-
-    const result = await CandidateService.updateCandidateStatus(
-      id,
-      status,
-      hrId
-    );
+     const hrId = req.user.id;
+    const result = await CandidateService.getCandidateWithOffers(id, hrId);
 
     return res.status(200).json(result);
-  } catch (error) {
-    console.error("Error updating candidate status:", error);
 
-    if (error.message === "Candidate not found") {
+  } catch (error) {
+    console.error('Error fetching candidate:', error);
+
+    if (error.message === 'Candidate not found') {
       return res.status(404).json({
         success: false,
-        message: "Candidate not found",
+        message: 'Candidate not found'
       });
     }
 
     return res.status(500).json({
       success: false,
-      message: "Internal server error while updating candidate status",
-      error: error.message,
+      message: 'Internal server error while fetching candidate',
+      error: error.message
     });
   }
 });
+
+// //candidate update status-api
+// router.put("/:id/status", auth, async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const { status } = req.body;
+//     const hrId = req.user.id;
+
+//     if (!status) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Status is required",
+//       });
+//     }
+
+//     const result = await CandidateService.updateCandidateStatus(
+//       id,
+//       status,
+//       hrId
+//     );
+
+//     return res.status(200).json(result);
+//   } catch (error) {
+//     console.error("Error updating candidate status:", error);
+
+//     if (error.message === "Candidate not found") {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Candidate not found",
+//       });
+//     }
+
+//     return res.status(500).json({
+//       success: false,
+//       message: "Internal server error while updating candidate status",
+//       error: error.message,
+//     });
+//   }
+// });
 
 //candidate search-api
 router.get("/search", auth, async (req, res) => {

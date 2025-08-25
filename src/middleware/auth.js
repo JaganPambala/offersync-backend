@@ -12,7 +12,8 @@ function authMiddleware(req, res, next) {
         req.user = decoded;
         next();
     } catch (err) {
-        res.status(400).json({ error: "Invalid token" });
+        res.status(400).json({ error: err.message || "Invalid token." });
+        console.log("Invalid token:", err.message);
     }
 }
 

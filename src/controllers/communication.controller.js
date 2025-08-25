@@ -42,6 +42,14 @@ router.post("/initiate", auth, async (req, res) => {
 
     const result = await CommunicationService.initiateCommunication(data);
 
+    if (result.alreadyExists) {
+      return res.status(200).json({
+        success: true,
+        message: "Communication already exists for this candidate and offers.",
+        data: result,
+      });
+    }
+
     res.status(201).json({
       success: true,
       message: "Communication initiated successfully",
@@ -56,40 +64,40 @@ router.post("/initiate", auth, async (req, res) => {
   }
 });
 
-// 2. Update Communication Status
-router.patch("/:communicationId/status", auth, async (req, res) => {
-  try {
-    console.log("Update status request:", req.params.communicationId, req.body);
-    const hrId = req.user.id;
+// // 2. Update Communication Status
+// router.patch("/:communicationId/status", auth, async (req, res) => {
+//   try {
+//     console.log("Update status request:", req.params.communicationId, req.body);
+//     const hrId = req.user.id;
 
-    const { status, remarks } = req.body;
-    if (!status) {
-      return res.status(400).json({
-        success: false,
-        message: "Status is required",
-      });
-    }
+//     const { status, remarks } = req.body;
+//     if (!status) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Status is required",
+//       });
+//     }
 
-    const result = await CommunicationService.updateStatus(
-      req.params.communicationId,
-      status,
-      remarks,
-      hrId // Pass HR ID for validation
-    );
+//     const result = await CommunicationService.updateStatus(
+//       req.params.communicationId,
+//       status,
+//       remarks,
+//       hrId // Pass HR ID for validation
+//     );
 
-    res.status(200).json({
-      success: true,
-      message: "Status updated successfully",
-      data: result,
-    });
-  } catch (error) {
-    console.error("Error in updateStatus:", error.message);
-    res.status(error.statusCode || 500).json({
-      success: false,
-      error: error.message || "Internal Server Error",
-    });
-  }
-});
+//     res.status(200).json({
+//       success: true,
+//       message: "Status updated successfully",
+//       data: result,
+//     });
+//   } catch (error) {
+//     console.error("Error in updateStatus:", error.message);
+//     res.status(error.statusCode || 500).json({
+//       success: false,
+//       error: error.message || "Internal Server Error",
+//     });
+//   }
+// });
 
 // 3. Record Outcome
 router.post("/:communicationId/outcome", auth, async (req, res) => {

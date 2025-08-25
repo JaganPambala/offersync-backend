@@ -354,24 +354,33 @@ class CandidateService {
   /**
    * Get candidate details by ID
    */
-  static async getCandidateById(candidateId) {
-    try {
-      const candidate = await Candidate.findById(candidateId)
-        .populate('source.addedBy', 'name company.name whatsapp.phoneNumber')
-        .populate('communications.withHrId', 'name company.name whatsapp.phoneNumber');
 
-      if (!candidate) {
-        throw new Error('Candidate not found');
-      }
+  static async getCandidateWithOffers(candidateId, loggedInHrId) {
+  try {
+    // 1. Fetch candidate basic info
+    const candidate = await Candidate.findById(candidateId)
+      .select('name email phone status')
+      .lean();
 
-      return {
-        success: true,
-        data: candidate
-      };
-    } catch (error) {
-      throw new Error(`Error fetching candidate: ${error.message}`);
+    if (!candidate) {
+      throw new Error('Candidate not found');
     }
+
+    // 2. Fetch offers created by this logged-in HR for the candidate
+    const offers = await Offer.find({
+      candidateId,
+      hrId: loggedInHrId
+    }).lean();
+
+    return {
+      success: true,
+      candidate,
+      offers
+    };
+  } catch (err) {
+    throw new Error(`Error fetching candidate: ${err.message}`);
   }
+}
 
   /**
    * Update candidate status and metrics
@@ -423,114 +432,114 @@ class CandidateService {
 
   /**
    * Search candidates with filters
-   */
-  static async searchCandidates(filters, page = 1, limit = 10) {
-    try {
-      const query = {};
+  //  */
+  // static async searchCandidates(filters, page = 1, limit = 10) {
+  //   try {
+  //     const query = {};
       
-      // Apply filters
-      if (filters.status) query.status = filters.status;
-      if (filters.location) {
-        query['location.city'] = { $regex: filters.location, $options: 'i' };
-      }
-      if (filters.experience) {
-        query['profile.totalExperience'] = { $gte: filters.experience };
-      }
-      if (filters.skills && filters.skills.length > 0) {
-        query['profile.skills'] = { $in: filters.skills };
-      }
+  //     // Apply filters
+  //     if (filters.status) query.status = filters.status;
+  //     if (filters.location) {
+  //       query['location.city'] = { $regex: filters.location, $options: 'i' };
+  //     }
+  //     if (filters.experience) {
+  //       query['profile.totalExperience'] = { $gte: filters.experience };
+  //     }
+  //     if (filters.skills && filters.skills.length > 0) {
+  //       query['profile.skills'] = { $in: filters.skills };
+  //     }
 
-      const skip = (page - 1) * limit;
+  //     const skip = (page - 1) * limit;
       
-      const candidates = await Candidate.find(query)
-        .populate('source.addedBy', 'name company.name')
-        .skip(skip)
-        .limit(limit)
-        .sort({ createdAt: -1 });
+  //     const candidates = await Candidate.find(query)
+  //       .populate('source.addedBy', 'name company.name')
+  //       .skip(skip)
+  //       .limit(limit)
+  //       .sort({ createdAt: -1 });
 
-      const total = await Candidate.countDocuments(query);
+  //     const total = await Candidate.countDocuments(query);
 
-      return {
-        success: true,
-        data: {
-          candidates,
-          pagination: {
-            page,
-            limit,
-            total,
-            pages: Math.ceil(total / limit)
-          }
-        }
-      };
-    } catch (error) {
-      throw new Error(`Error searching candidates: ${error.message}`);
-    }
-  }
+  //     return {
+  //       success: true,
+  //       data: {
+  //         candidates,
+  //         pagination: {
+  //           page,
+  //           limit,
+  //           total,
+  //           pages: Math.ceil(total / limit)
+  //         }
+  //       }
+  //     };
+  //   } catch (error) {
+  //     throw new Error(`Error searching candidates: ${error.message}`);
+  //   }
+  // }
 
-  /**
-   * Get candidate analytics and metrics
-   */
-  static async getCandidateAnalytics() {
-    try {
-      const analytics = await Candidate.aggregate([
-        {
-          $group: {
-            _id: '$status',
-            count: { $sum: 1 },
-            avgExperience: { $avg: '$profile.totalExperience' }
-          }
-        }
-      ]);
+  // /**
+  //  * Get candidate analytics and metrics
+  //  */
+  // static async getCandidateAnalytics() {
+  //   try {
+  //     const analytics = await Candidate.aggregate([
+  //       {
+  //         $group: {
+  //           _id: '$status',
+  //           count: { $sum: 1 },
+  //           avgExperience: { $avg: '$profile.totalExperience' }
+  //         }
+  //       }
+  //     ]);
 
-      const totalCandidates = await Candidate.countDocuments();
-      const totalOffers = await Offer.countDocuments({ status: 'ACTIVE' });
-      const duplicateRate = await this.calculateDuplicateRate();
+  //     const totalCandidates = await Candidate.countDocuments();
+  //     const totalOffers = await Offer.countDocuments({ status: 'ACTIVE' });
+  //     const duplicateRate = await this.calculateDuplicateRate();
 
-      return {
-        success: true,
-        data: {
-          totalCandidates,
-          totalOffers,
-          duplicateRate,
-          statusBreakdown: analytics,
-          recentActivity: await this.getRecentActivity()
-        }
-      };
-    } catch (error) {
-      throw new Error(`Error fetching analytics: ${error.message}`);
-    }
-  }
+  //     return {
+  //       success: true,
+  //       data: {
+  //         totalCandidates,
+  //         totalOffers,
+  //         duplicateRate,
+  //         statusBreakdown: analytics,
+  //         recentActivity: await this.getRecentActivity()
+  //       }
+  //     };
+  //   } catch (error) {
+  //     throw new Error(`Error fetching analytics: ${error.message}`);
+  //   }
+  // }
 
   /**
    * Calculate duplicate rate based on communications
    */
-  static async calculateDuplicateRate() {
-    try {
-      const totalCandidates = await Candidate.countDocuments();
-      const candidatesWithCommunications = await Candidate.countDocuments({
-        'communications.0': { $exists: true }
-      });
+  // static async calculateDuplicateRate() {
+  //   try {
+  //     const totalCandidates = await Candidate.countDocuments();
+  //     const candidatesWithCommunications = await Candidate.countDocuments({
+  //       'communications.0': { $exists: true }
+  //     });
 
-      return totalCandidates > 0 ? (candidatesWithCommunications / totalCandidates) * 100 : 0;
-    } catch (error) {
-      return 0;
-    }
-  }
+  //     return totalCandidates > 0 ? (candidatesWithCommunications / totalCandidates) * 100 : 0;
+  //   } catch (error) {
+  //     return 0;
+  //   }
+  // }
 
-  /**
-   * Get recent candidate activity
-   */
-  static async getRecentActivity(limit = 10) {
-    try {
-      return await Candidate.find()
-        .populate('source.addedBy', 'name company.name')
-        .sort({ updatedAt: -1 })
-        .limit(limit)
-        .select('name status updatedAt source.addedBy');
-    } catch (error) {
-      return [];
-    }
-  }
+  // /**
+  //  * Get recent candidate activity
+  //  */
+  // static async getRecentActivity(limit = 10) {
+  //   try {
+  //     return await Candidate.find()
+  //       .populate('source.addedBy', 'name company.name')
+  //       .sort({ updatedAt: -1 })
+  //       .limit(limit)
+  //       .select('name status updatedAt source.addedBy');
+  //   } catch (error) {
+  //     return [];
+  //   }
+  // }
 }
 
 module.exports = CandidateService;
