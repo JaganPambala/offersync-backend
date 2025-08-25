@@ -7,6 +7,7 @@ This guide explains the new comprehensive API endpoints that handle both candida
 ## Why Single API Instead of Two?
 
 ### Benefits of Single API:
+
 - **Better UX**: Single form submission instead of two separate steps
 - **Atomic Operations**: Either everything succeeds or fails together
 - **Reduced Network Overhead**: One request instead of two
@@ -14,6 +15,7 @@ This guide explains the new comprehensive API endpoints that handle both candida
 - **Consistent State**: Candidate and offer are always in sync
 
 ### Previous Approach (Two APIs):
+
 ```javascript
 // Step 1: Create candidate
 const candidate = await createCandidate(candidateData);
@@ -22,6 +24,7 @@ const offer = await createOffer(offerData, candidate.id);
 ```
 
 ### New Approach (Single API):
+
 ```javascript
 // Single call creates both candidate and offer
 const result = await createCandidateWithOffer(candidateData, offerData);
@@ -30,16 +33,18 @@ const result = await createCandidateWithOffer(candidateData, offerData);
 ## API Endpoints
 
 ### 1. Create New Candidate with Offer
+
 **Endpoint**: `POST /api/candidates/with-offer`
 
 **Use Case**: When HR fills the complete form with both candidate and offer details.
 
 **Request Body**:
+
 ```javascript
 {
   // Candidate fields
   "pan": "ABCDE1234F",
-  "aadhaar": "123456789012", 
+  "aadhaar": "123456789012",
   "email": "candidate@example.com",
   "phone": "9876543210",
   "name": "John Doe",
@@ -52,7 +57,7 @@ const result = await createCandidateWithOffer(candidateData, offerData);
     "currentRole": "Developer",
     "totalExperience": 36
   },
-  
+
   // Offer fields
   "position": {
     "title": "Senior Developer",
@@ -70,6 +75,7 @@ const result = await createCandidateWithOffer(candidateData, offerData);
 ```
 
 **Response**:
+
 ```javascript
 {
   "success": true,
@@ -82,7 +88,7 @@ const result = await createCandidateWithOffer(candidateData, offerData);
       "createdAt": "2024-01-15T10:30:00Z"
     },
     "offer": {
-      "id": "offer_id_here", 
+      "id": "offer_id_here",
       "position": { "title": "Senior Developer" },
       "status": "ACTIVE",
       "createdAt": "2024-01-15T10:30:00Z"
@@ -92,11 +98,13 @@ const result = await createCandidateWithOffer(candidateData, offerData);
 ```
 
 ### 2. Create Offer for Existing Candidate
+
 **Endpoint**: `POST /api/candidates/:candidateId/offer`
 
 **Use Case**: When HR clicks "create offer" for an existing candidate.
 
 **Request Body**:
+
 ```javascript
 {
   "position": {
@@ -116,6 +124,7 @@ const result = await createCandidateWithOffer(candidateData, offerData);
 ```
 
 **Response**:
+
 ```javascript
 {
   "success": true,
@@ -133,16 +142,18 @@ const result = await createCandidateWithOffer(candidateData, offerData);
 ```
 
 ### 3. Duplicate Check (Existing)
+
 **Endpoint**: `POST /api/candidates/check`
 
 **Use Case**: Check if candidate already exists before creating.
 
 **Request Body**:
+
 ```javascript
 {
   "pan": "ABCDE1234F",
   "aadhaar": "123456789012",
-  "email": "candidate@example.com", 
+  "email": "candidate@example.com",
   "phone": "9876543210"
 }
 ```
@@ -150,14 +161,15 @@ const result = await createCandidateWithOffer(candidateData, offerData);
 ## Frontend Implementation
 
 ### Scenario 1: Complete Form Submission
+
 ```javascript
 // Frontend form with both candidate and offer fields
 const handleSubmit = async (formData) => {
   try {
-    const response = await axios.post('/api/candidates/with-offer', formData, {
-      headers: { 'Authorization': `Bearer ${token}` }
+    const response = await axios.post("/api/candidates/with-offer", formData, {
+      headers: { Authorization: `Bearer ${token}` },
     });
-    
+
     if (response.data.success) {
       // Show success message
       // Redirect to offer details page
@@ -169,28 +181,33 @@ const handleSubmit = async (formData) => {
       showDuplicateWarning(error.response.data.data);
     } else {
       // Handle other errors
-      showError(error.response?.data?.message || 'Something went wrong');
+      showError(error.response?.data?.message || "Something went wrong");
     }
   }
 };
 ```
 
 ### Scenario 2: Create Offer for Existing Candidate
+
 ```javascript
 // When HR clicks "Create Offer" button
 const handleCreateOffer = async (candidateId, offerData) => {
   try {
-    const response = await axios.post(`/api/candidates/${candidateId}/offer`, offerData, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    
+    const response = await axios.post(
+      `/api/candidates/${candidateId}/offer`,
+      offerData,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
     if (response.data.success) {
       // Show success message
       // Update offer list
       // Refresh candidate status
     }
   } catch (error) {
-    showError(error.response?.data?.message || 'Failed to create offer');
+    showError(error.response?.data?.message || "Failed to create offer");
   }
 };
 ```
@@ -198,11 +215,13 @@ const handleCreateOffer = async (candidateId, offerData) => {
 ## Data Flow
 
 ### 1. New Candidate + Offer Creation
+
 ```
 Frontend Form → Duplicate Check → Create Candidate → Create Offer → Update Status → Success Response
 ```
 
 ### 2. Existing Candidate Offer Creation
+
 ```
 Select Candidate → Fill Offer Form → Create Offer → Update Candidate Status → Success Response
 ```
@@ -210,16 +229,19 @@ Select Candidate → Fill Offer Form → Create Offer → Update Candidate Statu
 ## Security Features
 
 ### Data Hashing
+
 - PAN and Aadhaar are automatically hashed using SHA-256
 - Original values are never stored in the database
 - Hashing is done before any database operations
 
 ### Duplicate Prevention
+
 - Multiple identifiers checked (PAN, Aadhaar, Email, Phone)
 - Returns detailed information about existing candidates
 - Prevents accidental duplicate creation
 
 ### Authorization
+
 - All endpoints require valid JWT token
 - HR can only create offers for candidates they have access to
 - Audit trail maintained for all operations
@@ -229,6 +251,7 @@ Select Candidate → Fill Offer Form → Create Offer → Update Candidate Statu
 ### Common Error Scenarios
 
 #### 1. Duplicate Candidate (409)
+
 ```javascript
 {
   "success": false,
@@ -243,6 +266,7 @@ Select Candidate → Fill Offer Form → Create Offer → Update Candidate Statu
 ```
 
 #### 2. Missing Required Fields (400)
+
 ```javascript
 {
   "success": false,
@@ -251,6 +275,7 @@ Select Candidate → Fill Offer Form → Create Offer → Update Candidate Statu
 ```
 
 #### 3. Candidate Not Found (404)
+
 ```javascript
 {
   "success": false",
@@ -261,16 +286,19 @@ Select Candidate → Fill Offer Form → Create Offer → Update Candidate Statu
 ## Best Practices
 
 ### 1. Frontend Validation
+
 - Validate all required fields before submission
 - Show appropriate error messages for missing data
 - Implement real-time duplicate checking
 
 ### 2. Error Handling
+
 - Always handle 409 (duplicate) responses gracefully
 - Show duplicate information to help HR make decisions
 - Implement retry mechanisms for network failures
 
 ### 3. User Experience
+
 - Use loading states during API calls
 - Provide clear feedback for all operations
 - Implement optimistic updates where appropriate
@@ -290,12 +318,14 @@ node src/test-comprehensive-api.js
 ## Migration Guide
 
 ### From Old Two-API Approach
+
 1. Replace separate candidate and offer creation calls
 2. Use new `/with-offer` endpoint for new candidates
 3. Use new `/:candidateId/offer` endpoint for existing candidates
 4. Update error handling for new response formats
 
 ### Backward Compatibility
+
 - Existing endpoints remain functional
 - Old API calls will continue to work
 - Gradual migration recommended
@@ -303,11 +333,13 @@ node src/test-comprehensive-api.js
 ## Performance Considerations
 
 ### Database Operations
+
 - Single transaction for candidate + offer creation
 - Efficient indexing on hashed fields
 - Minimal database round trips
 
 ### Network Optimization
+
 - Single HTTP request instead of two
 - Reduced latency and bandwidth usage
 - Better mobile experience
@@ -315,6 +347,7 @@ node src/test-comprehensive-api.js
 ## Monitoring and Analytics
 
 ### Metrics Tracked
+
 - Candidate creation rate
 - Offer creation rate
 - Duplicate detection rate
@@ -322,6 +355,7 @@ node src/test-comprehensive-api.js
 - Error rates by endpoint
 
 ### Logging
+
 - All operations logged with HR ID
 - Duplicate checks logged for analytics
 - Performance metrics captured

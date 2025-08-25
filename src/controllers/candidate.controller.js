@@ -195,28 +195,27 @@ router.post("/:candidateId/offer", auth, async (req, res) => {
 });
 
 //candidate get by id-api
-router.get('/:id', auth, async (req, res) => {
+router.get("/:id", auth, async (req, res) => {
   try {
     const { id } = req.params;
-     const hrId = req.user.id;
+    const hrId = req.user.id;
     const result = await CandidateService.getCandidateWithOffers(id, hrId);
 
     return res.status(200).json(result);
-
   } catch (error) {
-    console.error('Error fetching candidate:', error);
+    console.error("Error fetching candidate:", error);
 
-    if (error.message === 'Candidate not found') {
+    if (error.message === "Candidate not found") {
       return res.status(404).json({
         success: false,
-        message: 'Candidate not found'
+        message: "Candidate not found",
       });
     }
 
     return res.status(500).json({
       success: false,
-      message: 'Internal server error while fetching candidate',
-      error: error.message
+      message: "Internal server error while fetching candidate",
+      error: error.message,
     });
   }
 });

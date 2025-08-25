@@ -1,60 +1,58 @@
-const Candidate = require('../models/candidate');
-const Offer = require('../models/offer');
-const { Hr } = require('../models/hrSchema');
-const crypto = require('crypto');
+const Candidate = require("../models/candidate");
+const Offer = require("../models/offer");
+const { Hr } = require("../models/hrSchema");
+const crypto = require("crypto");
 
 class CandidateService {
- 
   static hashData(data) {
-    return crypto.createHash('sha256').update(data).digest('hex');
+    return crypto.createHash("sha256").update(data).digest("hex");
   }
 
   static async checkDuplicates(candidateData) {
     try {
       const { pan, aadhaar, email, phone } = candidateData;
-      
+
       // Hash the sensitive data for comparison
       const hashedPAN = this.hashData(pan);
       const hashedAadhaar = this.hashData(aadhaar);
-      
+
       // Check for duplicates using multiple identifiers
       const duplicates = await Candidate.find({
         $or: [
           { hashedPAN: hashedPAN },
           { hashedAadhaar: hashedAadhaar },
           { email: email.toLowerCase() },
-          { phone: phone }
-        ]
-      }).populate('source.addedBy', 'name company.name whatsapp.phoneNumber');
-      console.log("duplicates---------",duplicates );
+          { phone: phone },
+        ],
+      }).populate("source.addedBy", "name company.name whatsapp.phoneNumber");
+      console.log("duplicates---------", duplicates);
 
       if (duplicates.length === 0) {
         return {
           hasDuplicates: false,
-          message: 'No duplicates found. Safe to proceed with offer.',
-          data: null
+          message: "No duplicates found. Safe to proceed with offer.",
+          data: null,
         };
       }
 
       // Get existing offers for duplicate candidates
       const duplicateOffers = await Offer.find({
-        candidateId: { $in: duplicates.map(d => d._id) },
-        status: { $in: ['ACTIVE', 'ACCEPTED', 'ON_HOLD'] }
-        
-      }).populate('hrId', 'name company.name whatsapp.phoneNumber');
+        candidateId: { $in: duplicates.map((d) => d._id) },
+        status: { $in: ["ACTIVE", "ACCEPTED", "ON_HOLD"] },
+      }).populate("hrId", "name company.name whatsapp.phoneNumber");
 
-      console.log("duplicateOffers---------",duplicateOffers );
+      console.log("duplicateOffers---------", duplicateOffers);
 
       // Group offers by candidate
-      const candidatesWithOffers = duplicates.map(candidate => {
-        const candidateOffers = duplicateOffers.filter(offer => 
-          offer.candidateId.toString() === candidate._id.toString()
+      const candidatesWithOffers = duplicates.map((candidate) => {
+        const candidateOffers = duplicateOffers.filter(
+          (offer) => offer.candidateId.toString() === candidate._id.toString()
         );
-        console.log("candidateOffers---------",candidateOffers );
-        
+        console.log("candidateOffers---------", candidateOffers);
+
         return {
           candidate: {
-            id: candidate._id,  
+            id: candidate._id,
             name: candidate.name,
             currentCompany: candidate.profile?.currentCompany,
             currentRole: candidate.profile?.currentRole,
@@ -64,7 +62,7 @@ class CandidateService {
             skills: candidate.profile?.skills,
           },
           metrics: candidate.metrics,
-          existingOffers: candidateOffers.map(offer => ({
+          existingOffers: candidateOffers.map((offer) => ({
             id: offer._id,
             company: offer.company,
             position: offer.position,
@@ -76,15 +74,15 @@ class CandidateService {
               id: offer.hrId._id,
               name: offer.hrId.name,
               company: offer.hrId.company.name,
-              whatsapp: offer.hrId.whatsapp.phoneNumber
-            }
+              whatsapp: offer.hrId.whatsapp.phoneNumber,
+            },
           })),
           hrContact: {
             id: candidate.source.addedBy._id,
             name: candidate.source.addedBy.name,
             company: candidate.source.addedBy.company.name,
-            whatsapp: candidate.source.addedBy.whatsapp.phoneNumber
-          }
+            whatsapp: candidate.source.addedBy.whatsapp.phoneNumber,
+          },
         };
       });
 
@@ -94,8 +92,8 @@ class CandidateService {
         data: {
           duplicateCount: duplicates.length,
           candidates: candidatesWithOffers,
-          recommendations: this.generateRecommendations(candidatesWithOffers)
-        }
+          recommendations: this.generateRecommendations(candidatesWithOffers),
+        },
       };
     } catch (error) {
       throw new Error(`Error checking duplicates: ${error.message}`);
@@ -109,45 +107,53 @@ class CandidateService {
     const recommendations = [];
 
     candidatesWithOffers.forEach(({ candidate, existingOffers, hrContact }) => {
-      const activeOffers = existingOffers.filter(offer => offer.status === 'ACTIVE');
-      const acceptedOffers = existingOffers.filter(offer => offer.status === 'ACCEPTED');
+      const activeOffers = existingOffers.filter(
+        (offer) => offer.status === "ACTIVE"
+      );
+      const acceptedOffers = existingOffers.filter(
+        (offer) => offer.status === "ACCEPTED"
+      );
 
       if (acceptedOffers.length > 0) {
         recommendations.push({
-          type: 'WARNING',
+          type: "WARNING",
           message: `Candidate ${candidate.name} has already accepted an offer. Consider this before proceeding.`,
-          action: 'REVIEW_ACCEPTED_OFFER',
-          priority: 'HIGH'
+          action: "REVIEW_ACCEPTED_OFFER",
+          priority: "HIGH",
         });
       } else if (activeOffers.length > 0) {
         // Only include HRs from active offers who need to be coordinated with
-        const activeHrContacts = activeOffers.map(o => o.hr);
-        
+        const activeHrContacts = activeOffers.map((o) => o.hr);
+
         recommendations.push({
-          type: 'INFO',
+          type: "INFO",
           message: `Candidate ${candidate.name} has ${activeOffers.length} active offer(s). Coordinate with other HRs.`,
-          action: 'WHATSAPP_COORDINATION',
-          priority: 'MEDIUM',
-          hrContacts: activeHrContacts
+          action: "WHATSAPP_COORDINATION",
+          priority: "MEDIUM",
+          hrContacts: activeHrContacts,
         });
       }
 
       // Check for competitive offers
-      const competitiveOffers = existingOffers.filter(offer => 
-        offer.compensation && offer.compensation.total > 0
+      const competitiveOffers = existingOffers.filter(
+        (offer) => offer.compensation && offer.compensation.total > 0
       );
-      
+
       if (competitiveOffers.length > 0) {
-        const avgCompensation = competitiveOffers.reduce((sum, offer) => 
-          sum + offer.compensation.total, 0
-        ) / competitiveOffers.length;
-        
+        const avgCompensation =
+          competitiveOffers.reduce(
+            (sum, offer) => sum + offer.compensation.total,
+            0
+          ) / competitiveOffers.length;
+
         recommendations.push({
-          type: 'SUGGESTION',
-          message: `Market average compensation for this role is ${avgCompensation.toLocaleString('en-IN')} ${competitiveOffers[0].compensation.currency}.`,
-          action: 'COMPETITIVE_OFFER',
-          priority: 'MEDIUM',
-          data: { averageCompensation: avgCompensation }
+          type: "SUGGESTION",
+          message: `Market average compensation for this role is ${avgCompensation.toLocaleString(
+            "en-IN"
+          )} ${competitiveOffers[0].compensation.currency}.`,
+          action: "COMPETITIVE_OFFER",
+          priority: "MEDIUM",
+          data: { averageCompensation: avgCompensation },
         });
       }
     });
@@ -160,17 +166,29 @@ class CandidateService {
    */
   static async createCandidateWithOffer(candidateData, offerData, hrId) {
     try {
-      const { pan, aadhaar, email, phone, name, location, profile, whatsappNumber, consent } = candidateData;
-      
+      const {
+        pan,
+        aadhaar,
+        email,
+        phone,
+        name,
+        location,
+        profile,
+        whatsappNumber,
+        consent,
+      } = candidateData;
+
       // Validate required consents before proceeding
       if (!consent || !consent.dataSharing) {
-        throw new Error('Data sharing consent is required to create candidate profile');
+        throw new Error(
+          "Data sharing consent is required to create candidate profile"
+        );
       }
 
       // Hash sensitive data
       const hashedPAN = this.hashData(pan);
       const hashedAadhaar = this.hashData(aadhaar);
-      
+
       // Create candidate
       const newCandidate = new Candidate({
         name,
@@ -183,19 +201,19 @@ class CandidateService {
         profile,
         consent: {
           ...consent,
-          consentDate: new Date()
+          consentDate: new Date(),
         },
         source: {
           addedBy: hrId,
-          method: 'MANUAL'
+          method: "MANUAL",
         },
-        status: 'OFFERED',
+        status: "OFFERED",
         metrics: {
           totalOffers: 1,
           activeOffers: 1,
           acceptedOffers: 0,
-          totalCommunications: 0
-        }
+          totalCommunications: 0,
+        },
       });
 
       // If WhatsApp consent not given, don't allow WhatsApp communications
@@ -210,10 +228,10 @@ class CandidateService {
       const competition = {
         isCompetitive: false,
         competitorCount: 0,
-        marketRank: 'LEADING',
-        collaborationNeeded: false
+        marketRank: "LEADING",
+        collaborationNeeded: false,
       };
-      
+
       // Create offer
       const newOffer = new Offer({
         candidateId: savedCandidate._id,
@@ -221,10 +239,10 @@ class CandidateService {
         position: offerData.position,
         compensation: offerData.compensation,
         timeline: offerData.timeline,
-        status: 'ACTIVE',
-        priority: offerData.priority || 'MEDIUM',
-        competition,  // Use calculated competition
-        tags: offerData.tags
+        status: "ACTIVE",
+        priority: offerData.priority || "MEDIUM",
+        competition, // Use calculated competition
+        tags: offerData.tags,
       });
 
       // Save offer
@@ -232,30 +250,30 @@ class CandidateService {
 
       // Update HR stats
       await Hr.findByIdAndUpdate(hrId, {
-        $inc: { 
-          'stats.totalOffersCreated': 1,
-          'stats.totalCandidatesAdded': 1
+        $inc: {
+          "stats.totalOffersCreated": 1,
+          "stats.totalCandidatesAdded": 1,
         },
-        $set: { 'stats.lastActiveAt': new Date() }
+        $set: { "stats.lastActiveAt": new Date() },
       });
 
       return {
         success: true,
-        message: 'Candidate and offer created successfully',
+        message: "Candidate and offer created successfully",
         data: {
           candidate: {
             id: savedCandidate._id,
             name: savedCandidate.name,
             status: savedCandidate.status,
-            createdAt: savedCandidate.createdAt
+            createdAt: savedCandidate.createdAt,
           },
           offer: {
             id: savedOffer._id,
             position: savedOffer.position,
             status: savedOffer.status,
-            createdAt: savedOffer.createdAt
-          }
-        }
+            createdAt: savedOffer.createdAt,
+          },
+        },
       };
     } catch (error) {
       throw new Error(`Error creating candidate with offer: ${error.message}`);
@@ -270,27 +288,32 @@ class CandidateService {
       // Calculate competition based on existing offers
       const existingActiveOffers = await Offer.find({
         candidateId,
-        status: 'ACTIVE'
+        status: "ACTIVE",
       });
 
       // Determine candidate status based on offer count
-      const candidateStatus = existingActiveOffers.length > 0 ? 'MULTIPLE_OFFERS' : 'OFFERED';
+      const candidateStatus =
+        existingActiveOffers.length > 0 ? "MULTIPLE_OFFERS" : "OFFERED";
 
       // Update candidate status
       await Candidate.findByIdAndUpdate(candidateId, {
         $set: { status: candidateStatus },
-        $inc: { 
-          'metrics.totalOffers': 1,
-          'metrics.activeOffers': 1
-        }
+        $inc: {
+          "metrics.totalOffers": 1,
+          "metrics.activeOffers": 1,
+        },
       });
 
       // Calculate competition info
       const competition = {
         isCompetitive: existingActiveOffers.length > 0,
         competitorCount: existingActiveOffers.length,
-        marketRank: existingActiveOffers.length > 2 ? 'BELOW_MARKET' : 
-                   existingActiveOffers.length > 0 ? 'COMPETITIVE' : 'LEADING'
+        marketRank:
+          existingActiveOffers.length > 2
+            ? "BELOW_MARKET"
+            : existingActiveOffers.length > 0
+            ? "COMPETITIVE"
+            : "LEADING",
       };
 
       // Create offer
@@ -300,10 +323,10 @@ class CandidateService {
         position: offerData.position,
         compensation: offerData.compensation,
         timeline: offerData.timeline,
-        status: 'ACTIVE',
-        priority: offerData.priority || 'MEDIUM',
+        status: "ACTIVE",
+        priority: offerData.priority || "MEDIUM",
         competition,
-        tags: offerData.tags
+        tags: offerData.tags,
       });
 
       // Save offer
@@ -314,14 +337,17 @@ class CandidateService {
         const updatedCompetition = {
           isCompetitive: true,
           competitorCount: existingActiveOffers.length + 1,
-          marketRank: existingActiveOffers.length + 1 > 2 ? 'BELOW_MARKET' : 'COMPETITIVE'
+          marketRank:
+            existingActiveOffers.length + 1 > 2
+              ? "BELOW_MARKET"
+              : "COMPETITIVE",
         };
 
         await Offer.updateMany(
-          { 
+          {
             candidateId,
-            status: 'ACTIVE',
-            _id: { $ne: savedOffer._id }
+            status: "ACTIVE",
+            _id: { $ne: savedOffer._id },
           },
           { $set: { competition: updatedCompetition } }
         );
@@ -329,25 +355,27 @@ class CandidateService {
 
       // Update HR stats
       await Hr.findByIdAndUpdate(hrId, {
-        $inc: { 'stats.totalOffersCreated': 1 },
-        $set: { 'stats.lastActiveAt': new Date() }
+        $inc: { "stats.totalOffersCreated": 1 },
+        $set: { "stats.lastActiveAt": new Date() },
       });
 
       return {
         success: true,
-        message: 'Offer created successfully for existing candidate',
+        message: "Offer created successfully for existing candidate",
         data: {
           offer: {
             id: savedOffer._id,
             position: savedOffer.position,
             status: savedOffer.status,
-            createdAt: savedOffer.createdAt
+            createdAt: savedOffer.createdAt,
           },
-          candidateId
-        }
+          candidateId,
+        },
       };
     } catch (error) {
-      throw new Error(`Error creating offer for existing candidate: ${error.message}`);
+      throw new Error(
+        `Error creating offer for existing candidate: ${error.message}`
+      );
     }
   }
 
@@ -356,31 +384,46 @@ class CandidateService {
    */
 
   static async getCandidateWithOffers(candidateId, loggedInHrId) {
-  try {
-    // 1. Fetch candidate basic info
-    const candidate = await Candidate.findById(candidateId)
-      .select('name email phone status')
-      .lean();
+    try {
+      // 1. Fetch candidate basic info
+      const candidate = await Candidate.findById(candidateId)
+        .select("name email phone status")
+        .lean();
 
-    if (!candidate) {
-      throw new Error('Candidate not found');
+      if (!candidate) {
+        throw new Error("Candidate not found");
+      }
+
+      // 2. Fetch offers created by this logged-in HR for the candidate
+      const offers = await Offer.find({
+        candidateId,
+        hrId: loggedInHrId,
+      }).lean();
+
+      return {
+        success: true,
+        candidate,
+        offers,
+      };
+    } catch (err) {
+      throw new Error(`Error fetching candidate: ${err.message}`);
     }
-
-    // 2. Fetch offers created by this logged-in HR for the candidate
-    const offers = await Offer.find({
-      candidateId,
-      hrId: loggedInHrId
-    }).lean();
-
-    return {
-      success: true,
-      candidate,
-      offers
-    };
-  } catch (err) {
-    throw new Error(`Error fetching candidate: ${err.message}`);
   }
-}
+
+  /**
+   * Get candidate by ID (for controller existence check)
+   */
+  static async getCandidateById(candidateId) {
+    try {
+      const candidate = await Candidate.findById(candidateId);
+      if (!candidate) {
+        return { success: false };
+      }
+      return { success: true, data: candidate };
+    } catch (error) {
+      return { success: false };
+    }
+  }
 
   /**
    * Update candidate status and metrics
@@ -389,41 +432,44 @@ class CandidateService {
     try {
       const candidate = await Candidate.findById(candidateId);
       if (!candidate) {
-        throw new Error('Candidate not found');
+        throw new Error("Candidate not found");
       }
 
       const oldStatus = candidate.status;
       candidate.status = newStatus;
-      
+
       // Update metrics based on status change
-      if (newStatus === 'OFFERED' && oldStatus !== 'OFFERED') {
+      if (newStatus === "OFFERED" && oldStatus !== "OFFERED") {
         candidate.metrics.totalOffers += 1;
         candidate.metrics.activeOffers += 1;
-      } else if (newStatus === 'ACCEPTED' && oldStatus !== 'ACCEPTED') {
+      } else if (newStatus === "ACCEPTED" && oldStatus !== "ACCEPTED") {
         candidate.metrics.acceptedOffers += 1;
-        candidate.metrics.activeOffers = Math.max(0, candidate.metrics.activeOffers - 1);
+        candidate.metrics.activeOffers = Math.max(
+          0,
+          candidate.metrics.activeOffers - 1
+        );
       }
 
       // Add communication record if HR is different
       if (hrId && candidate.source.addedBy.toString() !== hrId.toString()) {
         candidate.communications.push({
           withHrId: hrId,
-          status: 'ACTIVE',
-          startedAt: new Date()
+          status: "ACTIVE",
+          startedAt: new Date(),
         });
         candidate.metrics.totalCommunications += 1;
       }
 
       const updatedCandidate = await candidate.save();
-      
+
       return {
         success: true,
-        message: 'Candidate status updated successfully',
+        message: "Candidate status updated successfully",
         data: {
           id: updatedCandidate._id,
           status: updatedCandidate.status,
-          metrics: updatedCandidate.metrics
-        }
+          metrics: updatedCandidate.metrics,
+        },
       };
     } catch (error) {
       throw new Error(`Error updating candidate status: ${error.message}`);
@@ -436,7 +482,7 @@ class CandidateService {
   // static async searchCandidates(filters, page = 1, limit = 10) {
   //   try {
   //     const query = {};
-      
+
   //     // Apply filters
   //     if (filters.status) query.status = filters.status;
   //     if (filters.location) {
@@ -450,7 +496,7 @@ class CandidateService {
   //     }
 
   //     const skip = (page - 1) * limit;
-      
+
   //     const candidates = await Candidate.find(query)
   //       .populate('source.addedBy', 'name company.name')
   //       .skip(skip)

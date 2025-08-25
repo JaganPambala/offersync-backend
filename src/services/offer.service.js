@@ -18,7 +18,7 @@ class OfferService {
       },
     ]);
 
-    const countBy = Object.fromEntries(counts.map(c => [c._id, c.count]));
+    const countBy = Object.fromEntries(counts.map((c) => [c._id, c.count]));
     const activeCount = (countBy.ACTIVE || 0) + (countBy.ON_HOLD || 0);
     const acceptedCount = countBy.ACCEPTED || 0;
     const joinedCount = countBy.JOINED || 0;
@@ -72,7 +72,8 @@ class OfferService {
           statusHistory: {
             previousStatus: "REJECTED",
             newStatus: "ACTIVE",
-            reason: "Accepted offer withdrawn/put on hold; reopening competition",
+            reason:
+              "Accepted offer withdrawn/put on hold; reopening competition",
             updatedAt: new Date(),
           },
         },
@@ -82,7 +83,8 @@ class OfferService {
 
   // ---------- Public API ----------
   static async createOffer(payload, hrId) {
-    const { candidateId, position, compensation, timeline, priority, tags } = payload;
+    const { candidateId, position, compensation, timeline, priority, tags } =
+      payload;
 
     const candidate = await Candidate.findById(candidateId);
     if (!candidate) throw new Error("Candidate not found");
@@ -92,7 +94,9 @@ class OfferService {
       status: "ACCEPTED",
     });
     if (acceptedOffer) {
-      throw new Error("Cannot create offer: Candidate already has an accepted offer.");
+      throw new Error(
+        "Cannot create offer: Candidate already has an accepted offer."
+      );
     }
 
     const competitionInfo = await this.calculateCompetition(candidateId);
@@ -171,7 +175,9 @@ class OfferService {
 
     const candidatesWithOffers = await Promise.all(
       paginatedCandidates.map(async (candidateId) => {
-        const candidate = await Candidate.findById(candidateId).select("name status");
+        const candidate = await Candidate.findById(candidateId).select(
+          "name status"
+        );
         const offers = await Offer.find({ candidateId, ...query })
           .select("position compensation status priority timeline hrId")
           .populate({
@@ -248,25 +254,29 @@ class OfferService {
       throw new Error(`Invalid status. Allowed: ${allowed.join(", ")}`);
     }
 
-    const offer = await Offer.findById(offerId).populate("candidateId").populate("hrId");
+    const offer = await Offer.findById(offerId)
+      .populate("candidateId")
+      .populate("hrId");
     if (!offer) throw new Error("Offer not found");
 
     const candidateId = offer.candidateId._id;
 
     // ❌ Prevent ACCEPTED → ACTIVE directly
     if (offer.status === "ACCEPTED" && status === "ACTIVE") {
-      throw new Error("Invalid transition: Cannot move from ACCEPTED back to ACTIVE.");
+      throw new Error(
+        "Invalid transition: Cannot move from ACCEPTED back to ACTIVE."
+      );
     }
 
     // ---- ACCEPTED ----
-    if (status === "ACCEPTED") {
-      const existingAccepted = await Offer.findOne({
+    if (status === "ACCEPTED" || status === "JOINED") {
+      const existingAcceptedOrJoined = await Offer.findOne({
         candidateId,
-        status: "ACCEPTED",
+        status: { $in: ["ACCEPTED", "JOINED"] },
         _id: { $ne: offer._id },
       });
-      if (existingAccepted) {
-        throw new Error("Candidate already accepted another offer");
+      if (existingAcceptedOrJoined) {
+        throw new Error("Candidate already accepted or joined another offer");
       }
 
       await Offer.findByIdAndUpdate(offerId, {
@@ -285,7 +295,11 @@ class OfferService {
       await Candidate.findByIdAndUpdate(candidateId, { status: "ACCEPTED" });
 
       try {
-        await EmailService.sendOfferAcceptedConfirmation(offer.hrId, offer.candidateId, offer);
+        await EmailService.sendOfferAcceptedConfirmation(
+          offer.hrId,
+          offer.candidateId,
+          offer
+        );
       } catch (e) {
         console.error("Email notify failed:", e);
       }
@@ -301,7 +315,9 @@ class OfferService {
           statusHistory: {
             previousStatus: offer.status,
             newStatus: status,
-            reason: wasAccepted ? "Accepted offer withdrawn/rejected" : "Status updated",
+            reason: wasAccepted
+              ? "Accepted offer withdrawn/rejected"
+              : "Status updated",
             updatedAt: new Date(),
           },
         },
@@ -341,7 +357,9 @@ class OfferService {
 
     // ---- JOINED ----
     if (status === "JOINED") {
-      await Offer.findByIdAndUpdate(offerId, { $set: { status: "JOINED", updatedAt: new Date() } });
+      await Offer.findByIdAndUpdate(offerId, {
+        $set: { status: "JOINED", updatedAt: new Date() },
+      });
 
       await Offer.updateMany(
         { candidateId, _id: { $ne: offerId } },
@@ -363,11 +381,56 @@ class OfferService {
 
     // ---- Simple statuses ----
     if (["ACTIVE", "EXPIRED", "DRAFT"].includes(status)) {
-      await Offer.findByIdAndUpdate(offerId, { $set: { status, updatedAt: new Date() } });
+      await Offer.findByIdAndUpdate(offerId, {
+        $set: { status, updatedAt: new Date() },
+      });
       await this._recalcCandidateStatus(candidateId);
     }
 
     return await Offer.findById(offerId);
+  }
+
+  /**
+   * Delete an offer and update candidate metrics, status, and HR stats.
+   */
+  static async deleteOffer(offerId, hrId) {
+    // 1. Find the offer
+    const offer = await Offer.findById(offerId);
+    if (!offer) {
+      throw new Error("Offer not found");
+    }
+    if (offer.hrId.toString() !== hrId) {
+      throw new Error("Unauthorized");
+    }
+
+    const candidateId = offer.candidateId;
+    const offerStatus = offer.status;
+
+    // 2. Delete the offer
+    await Offer.findByIdAndDelete(offerId);
+
+    // 3. Update candidate metrics
+    // Decrement totalOffers and activeOffers/acceptedOffers as needed
+    const updateMetrics = {};
+    updateMetrics["metrics.totalOffers"] = -1;
+    if (offerStatus === "ACTIVE" || offerStatus === "ON_HOLD") {
+      updateMetrics["metrics.activeOffers"] = -1;
+    }
+    if (offerStatus === "ACCEPTED") {
+      updateMetrics["metrics.acceptedOffers"] = -1;
+    }
+    await Candidate.findByIdAndUpdate(candidateId, { $inc: updateMetrics });
+
+    // 4. Recalculate candidate status
+    await this._recalcCandidateStatus(candidateId);
+
+    // 5. Update HR stats
+    await Hr.findByIdAndUpdate(hrId, {
+      $inc: { "stats.totalOffersCreated": -1 },
+      $set: { "stats.lastActiveAt": new Date() },
+    });
+
+    return { success: true, message: "Offer deleted successfully" };
   }
 }
 
