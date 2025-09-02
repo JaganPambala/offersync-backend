@@ -17,13 +17,16 @@ OfferSync features a **professional, dashboard-first interface** designed specif
 ### Core Pages & Features
 
 #### 1. **Dashboard** (`/`)
+
 - **Welcome Section**: Personalized greeting with quick stats
 - **Key Metrics**: Active offers, success rates, WhatsApp communications
 - **Recent Activity**: Latest offers and notifications
 - **Quick Actions**: Fast access to core features
 
 #### 2. **Candidate Check** (`/candidates/check`)
+
 **Core Feature**: The heart of the application
+
 - **Smart Form**: PAN, Aadhaar, email, phone verification
 - **Duplicate Detection**: Real-time candidate matching
 - **Conflict Resolution**: Shows existing offers and HR contacts
@@ -31,6 +34,7 @@ OfferSync features a **professional, dashboard-first interface** designed specif
 - **Recommended Actions**: AI-powered suggestions
 
 #### 3. **Offers Management** (`/offers`)
+
 - **Data Table & Card Views**: Toggle between viewing modes
 - **Advanced Filters**: Status, priority, competitive offers
 - **Real-time Status**: Active, pending, accepted, expired
@@ -38,12 +42,14 @@ OfferSync features a **professional, dashboard-first interface** designed specif
 - **Quick Actions**: WhatsApp coordination buttons
 
 #### 4. **Communications** (`/communications`)
+
 - **WhatsApp Tracking**: Complete conversation history
 - **Resolution Timeline**: Step-by-step communication flow
 - **Performance Metrics**: Response times, success rates
 - **Follow-up Management**: Automated reminders and actions
 
 #### 5. **Authentication** (`/login`, `/register`)
+
 - **Modern Login**: Gradient backgrounds, smooth animations
 - **Feature Preview**: Benefits highlighted for new users
 - **Security Focus**: Professional trust indicators
@@ -51,6 +57,7 @@ OfferSync features a **professional, dashboard-first interface** designed specif
 ## 🎨 Design System
 
 ### Color Palette
+
 ```css
 Primary: Blue (#0ea5e9, #0284c7, #0369a1)
 Success: Green (#22c55e, #16a34a)
@@ -63,28 +70,33 @@ Neutral: Gray (#f9fafb to #111827)
 ### Component Library
 
 #### Buttons
+
 - **Primary**: Blue gradient, white text
 - **Secondary**: Gray background, dark text
 - **WhatsApp**: Green theme with WhatsApp icon
 - **Outline**: Border-only style for secondary actions
 
 #### Cards
+
 - **Standard Card**: White background, rounded corners, subtle shadow
 - **Compact Card**: Smaller padding for dashboard widgets
 - **Status Cards**: Color-coded for different states
 
 #### Badges & Status Indicators
+
 - **Active**: Green background
 - **Pending**: Yellow background
 - **Resolved**: Blue background
 - **Priority Levels**: Red (High), Yellow (Medium), Gray (Low)
 
 #### Data Tables
+
 - **Responsive**: Mobile-optimized with horizontal scroll
 - **Interactive**: Hover effects, sorting capabilities
 - **Action Columns**: Quick access to common operations
 
 ### Typography
+
 - **Font**: Inter (Google Fonts)
 - **Headings**: Bold, clear hierarchy
 - **Body Text**: Readable, professional
@@ -92,10 +104,11 @@ Neutral: Gray (#f9fafb to #111827)
 ## 🚀 Key User Flows
 
 ### 1. Candidate Duplicate Check Flow
+
 ```
-Enter PAN → Check Database → 
+Enter PAN → Check Database →
 ├── No Duplicates: Create Offer
-└── Duplicates Found: 
+└── Duplicates Found:
     ├── View Existing Offers
     ├── See HR Contacts
     ├── WhatsApp Coordination
@@ -103,15 +116,17 @@ Enter PAN → Check Database →
 ```
 
 ### 2. WhatsApp Coordination Flow
+
 ```
-Detect Conflict → Generate Message → 
-Send WhatsApp → Track Response → 
+Detect Conflict → Generate Message →
+Send WhatsApp → Track Response →
 Resolve Agreement → Update Portal
 ```
 
 ### 3. Dashboard Analytics Flow
+
 ```
-Login → View Metrics → 
+Login → View Metrics →
 ├── Check Notifications
 ├── Review Active Offers
 ├── Start New Candidate Check
@@ -121,6 +136,7 @@ Login → View Metrics →
 ## 🛠️ Technical Implementation
 
 ### Frontend Stack
+
 - **React 19**: Latest React with concurrent features
 - **React Router 7**: File-based routing
 - **TypeScript**: Type-safe development
@@ -128,12 +144,14 @@ Login → View Metrics →
 - **Vite**: Fast development server
 
 ### API Integration
+
 - RESTful API with comprehensive endpoints
 - Real-time WhatsApp integration
 - Advanced candidate matching algorithms
 - Analytics and reporting capabilities
 
 ### Responsive Design
+
 - **Mobile-First**: Optimized for phone usage
 - **Tablet Support**: Intermediate screen sizes
 - **Desktop**: Full feature set with sidebar navigation
@@ -142,11 +160,13 @@ Login → View Metrics →
 ## 📱 Mobile Experience
 
 ### Sidebar Navigation
+
 - **Collapsible**: Slides in/out on mobile
 - **Touch Optimized**: Large touch targets
 - **Quick Access**: Essential features prioritized
 
 ### WhatsApp Integration
+
 - **Native Links**: Direct app integration
 - **Copy Messages**: Fallback for desktop users
 - **Deep Linking**: Seamless transitions
@@ -154,12 +174,14 @@ Login → View Metrics →
 ## 🎯 User Experience Highlights
 
 ### For HR Professionals
+
 1. **Quick Candidate Checking**: 2-click process to verify duplicates
 2. **Instant WhatsApp**: Direct communication with other HRs
 3. **Clear Conflict Resolution**: Step-by-step guidance
 4. **Performance Tracking**: Success metrics and improvement insights
 
 ### For Companies
+
 1. **Brand Consistency**: Professional, trustworthy interface
 2. **Efficiency Gains**: Reduced candidate confusion
 3. **Collaboration**: Better industry relationships
@@ -184,6 +206,7 @@ npm start
 Visit `http://localhost:5173` to see the application.
 
 ### Demo Features
+
 - Try PAN "ABCDE1234F" in candidate check to see duplicate flow
 - Navigate through all sections to experience the full UI
 - Test responsive design on different screen sizes
@@ -191,22 +214,26 @@ Visit `http://localhost:5173` to see the application.
 ## 🎨 UI Components Preview
 
 ### Dashboard Metrics
+
 - **Cards Layout**: 4-column grid on desktop, stacked on mobile
 - **Trend Indicators**: Up/down arrows with percentage changes
 - **Quick Stats**: Total offers, success rates, communication metrics
 
 ### Candidate Check Interface
+
 - **Progressive Form**: Step-by-step data collection
 - **Conflict Display**: Clear presentation of duplicate information
 - **Action Buttons**: WhatsApp coordination, offer creation
 
 ### Offers Table
+
 - **Sortable Columns**: Click headers to sort
 - **Status Indicators**: Color-coded badges
 - **Competition Alerts**: Orange highlights for competitive offers
 - **Quick Actions**: In-line WhatsApp buttons
 
 ### Communication Timeline
+
 - **Visual Progress**: Step-by-step resolution tracking
 - **Time Stamps**: Clear chronological order
 - **Status Updates**: Real-time communication status
@@ -214,6 +241,7 @@ Visit `http://localhost:5173` to see the application.
 ## 🔧 Customization
 
 The design system is highly customizable through:
+
 - **CSS Variables**: Easy color theme changes
 - **Tailwind Classes**: Utility-first approach
 - **Component Props**: Flexible component API
@@ -222,6 +250,7 @@ The design system is highly customizable through:
 ## 📊 Analytics & Metrics
 
 The UI provides comprehensive insights into:
+
 - **Offer Success Rates**: Conversion tracking
 - **Communication Efficiency**: Response times, resolution rates
 - **Collaboration Impact**: Before/after coordination metrics
@@ -230,6 +259,7 @@ The UI provides comprehensive insights into:
 ---
 
 ### **Core Models**
+
 1. **HR** - User authentication, WhatsApp integration, company details
 2. **Candidate** - Unique identification, professional profile, communication tracking
 3. **Offer** - Position details, compensation, status management, competition tracking
@@ -239,4 +269,3 @@ The UI provides comprehensive insights into:
 7. **WhatsAppTemplate** - Message templates, usage analytics
 
 **OfferSync** - Transforming HR collaboration, one conversation at a time. 🚀
-

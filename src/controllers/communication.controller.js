@@ -178,6 +178,7 @@ router.get("/", auth, async (req, res) => {
     const hrId = req.user.id;
 
     const communications = await CommunicationService.listCommunications(hrId);
+    console.log("Retrieved communications:", communications);
     if (!communications || communications.length === 0) {
       return res.status(404).json({
         success: false,

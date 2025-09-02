@@ -155,87 +155,107 @@ class OfferService {
 
   // ✅ Your existing listOffers (kept as is)
   static async listOffers(filters = {}, page = 1, limit = 10) {
-    const query = {};
-    if (filters.status) query.status = filters.status;
-    if (filters.priority) query.priority = filters.priority;
-    if (filters.hrId) query.hrId = filters.hrId;
-    if (filters.candidateId) query.candidateId = filters.candidateId;
-    if (filters.search) {
-      query.$or = [
-        { "position.title": { $regex: filters.search, $options: "i" } },
-        { tags: { $in: [filters.search] } },
-      ];
-    }
+    try {
+      // Build query object - keeping your existing logic
+      const query = {};
+      if (filters.status) query.status = filters.status;
+      if (filters.priority) query.priority = filters.priority;
+      if (filters.hrId) query.hrId = filters.hrId;
+      if (filters.candidateId) query.candidateId = filters.candidateId;
+      if (filters.search) {
+        query.$or = [
+          { "position.title": { $regex: filters.search, $options: "i" } },
+          { tags: { $in: [filters.search] } },
+        ];
+      }
 
-    const uniqueCandidates = await Offer.distinct("candidateId", query);
-    const total = uniqueCandidates.length;
+      // Get all unique candidates matching the query
+      const uniqueCandidates = await Offer.distinct("candidateId", query);
+      const total = uniqueCandidates.length;
 
-    const skip = (page - 1) * limit;
-    const paginatedCandidates = uniqueCandidates.slice(skip, skip + limit);
+      // Validate pagination parameters
+      const validatedPage = Math.max(1, parseInt(page));
+      const validatedLimit = Math.min(50, Math.max(1, parseInt(limit)));
+      const totalPages = Math.ceil(total / validatedLimit);
 
-    const candidatesWithOffers = await Promise.all(
-      paginatedCandidates.map(async (candidateId) => {
-        const candidate = await Candidate.findById(candidateId).select(
-          "name status"
-        );
-        const offers = await Offer.find({ candidateId, ...query })
-          .select("position compensation status priority timeline hrId")
-          .populate({
-            path: "hrId",
-            select: "name email phone company.name whatsapp.phoneNumber",
-          });
+      // Ensure page doesn't exceed total pages
+      const finalPage = Math.min(validatedPage, totalPages || 1);
+      const skip = (finalPage - 1) * validatedLimit;
 
-        const formattedOffers = offers.map((offer) => ({
-          id: offer._id,
-          position: {
-            title: offer.position.title,
-            level: offer.position.level,
-          },
-          compensation: {
-            total:
-              offer.compensation.total ??
-              (offer.compensation.base || 0) +
+      // Get paginated candidates while preserving order
+      const paginatedCandidates = uniqueCandidates.slice(skip, skip + validatedLimit);
+
+      // Keep your existing candidate and offers fetching logic
+      const candidatesWithOffers = await Promise.all(
+        paginatedCandidates.map(async (candidateId) => {
+          const candidate = await Candidate.findById(candidateId).select(
+            "name status"
+          );
+          const offers = await Offer.find({ candidateId, ...query })
+            .select("position compensation status priority timeline hrId")
+            .populate({
+              path: "hrId",
+              select: "name email phone company.name whatsapp.phoneNumber",
+            });
+
+          const formattedOffers = offers.map((offer) => ({
+            id: offer._id,
+            position: {
+              title: offer.position.title,
+              level: offer.position.level,
+            },
+            compensation: {
+              total:
+                offer.compensation.total ??
+                (offer.compensation.base || 0) +
                 (offer.compensation.variable || 0) +
                 (offer.compensation.bonus || 0),
-          },
-          status: offer.status,
-          priority: offer.priority,
-          timeline: {
-            validTill: offer.timeline?.validTill,
-            followUpDate: offer.timeline?.followUpDate,
-          },
-          hr: offer.hrId
-            ? {
-                id: offer.hrId._id,
-                name: offer.hrId.name,
-                email: offer.hrId.email,
-                phone: offer.hrId.phone,
-                whatsapp: offer.hrId.whatsapp?.phoneNumber,
-                company: offer.hrId.company?.name,
-              }
-            : null,
-        }));
+            },
+            status: offer.status,
+            priority: offer.priority,
+            timeline: {
+              validTill: offer.timeline?.validTill,
+              followUpDate: offer.timeline?.followUpDate,
+            },
+            hr: offer.hrId
+              ? {
+                  id: offer.hrId._id,
+                  name: offer.hrId.name,
+                  email: offer.hrId.email,
+                  phone: offer.hrId.phone,
+                  whatsapp: offer.hrId.whatsapp?.phoneNumber,
+                  company: offer.hrId.company?.name,
+                }
+              : null,
+          }));
 
-        return {
-          candidate: {
-            id: candidate._id,
-            name: candidate.name,
-            status: candidate.status,
-          },
-          offers: formattedOffers,
-        };
-      })
-    );
+          return {
+            candidate: {
+              id: candidate._id,
+              name: candidate.name,
+              status: candidate.status,
+            },
+            offers: formattedOffers,
+          };
+        })
+      );
 
-    return {
-      data: candidatesWithOffers,
-      pagination: {
-        total,
-        page,
-        limit,
-        pages: Math.ceil(total / limit),
-      },
-    };
+      // Enhanced pagination metadata
+      return {
+        data: candidatesWithOffers,
+        pagination: {
+          total,
+          page: finalPage,
+          limit: validatedLimit,
+          pages: totalPages,
+          hasNextPage: finalPage < totalPages,
+          hasPreviousPage: finalPage > 1
+        },
+      };
+    } catch (error) {
+      console.error('Error in listOffers:', error);
+      throw new Error(`Error fetching offers: ${error.message}`);
+    }
   }
 
   // ✅ Fixed updateStatus

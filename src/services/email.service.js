@@ -1,28 +1,32 @@
-const nodemailer = require('nodemailer');
-const config = require('config');
+const nodemailer = require("nodemailer");
+const config = require("config");
 
 class EmailService {
-    static transporter = null;
+  static transporter = null;
 
-    static async initialize() {
-        // Create transporter using SMTP configuration
-        this.transporter = nodemailer.createTransport({
-            host: config.get('email.smtp.host'),
-            port: config.get('email.smtp.port'),
-            secure: config.get('email.smtp.secure'),
-            auth: {
-                user: config.get('email.smtp.user'),
-                pass: config.get('email.smtp.password')
-            }
-        });
+  static async initialize() {
+    // Create transporter using SMTP configuration
+    this.transporter = nodemailer.createTransport({
+      host: config.get("email.smtp.host"),
+      port: config.get("email.smtp.port"),
+      secure: config.get("email.smtp.secure"),
+      auth: {
+        user: config.get("email.smtp.user"),
+        pass: config.get("email.smtp.password"),
+      },
+    });
+  }
+
+  static async sendOfferStatusNotification(
+    hrDetails,
+    candidateDetails,
+    offerDetails
+  ) {
+    if (!this.transporter) {
+      await this.initialize();
     }
 
-    static async sendOfferStatusNotification(hrDetails, candidateDetails, offerDetails) {
-        if (!this.transporter) {
-            await this.initialize();
-        }
-
-        const emailContent = `
+    const emailContent = `
             Dear ${hrDetails.name},
 
             This is to inform you that the candidate ${candidateDetails.name} has accepted an offer from ${offerDetails.acceptedCompany}.
@@ -38,20 +42,24 @@ class EmailService {
             OfferSync Team
         `;
 
-        return await this.transporter.sendMail({
-            from: config.get('email.from'),
-            to: hrDetails.email,
-            subject: `Offer Update: ${candidateDetails.name} has accepted another offer`,
-            text: emailContent
-        });
+    return await this.transporter.sendMail({
+      from: config.get("email.from"),
+      to: hrDetails.email,
+      subject: `Offer Update: ${candidateDetails.name} has accepted another offer`,
+      text: emailContent,
+    });
+  }
+
+  static async sendOfferAcceptedConfirmation(
+    hrDetails,
+    candidateDetails,
+    offerDetails
+  ) {
+    if (!this.transporter) {
+      await this.initialize();
     }
 
-    static async sendOfferAcceptedConfirmation(hrDetails, candidateDetails, offerDetails) {
-        if (!this.transporter) {
-            await this.initialize();
-        }
-
-        const emailContent = `
+    const emailContent = `
             Dear ${hrDetails.name},
 
             Congratulations! The candidate ${candidateDetails.name} has accepted your offer.
@@ -69,13 +77,26 @@ class EmailService {
             OfferSync Team
         `;
 
-        return await this.transporter.sendMail({
-            from: config.get('email.from'),
-            to: hrDetails.email,
-            subject: `Offer Accepted: ${candidateDetails.name}`,
-            text: emailContent
-        });
+    return await this.transporter.sendMail({
+      from: config.get("email.from"),
+      to: hrDetails.email,
+      subject: `Offer Accepted: ${candidateDetails.name}`,
+      text: emailContent,
+    });
+  }
+
+  static async sendMail({ to, subject, text }) {
+    console.log("Preparing to send email to:", to);
+    if (!this.transporter) {
+      await this.initialize();
     }
+    return await this.transporter.sendMail({
+      from: config.get("email.from"),
+      to,
+      subject,
+      text,
+    });
+  }
 }
 
-module.exports = EmailService; 
+module.exports = EmailService;

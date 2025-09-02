@@ -12,6 +12,7 @@ jest.mock("../src/services/candidate.service", () => ({
   getRecentActivity: jest.fn(),
   updateCandidateStatus: jest.fn(),
   calculateDuplicateRate: jest.fn(),
+  getCandidateWithOffers: jest.fn(), // Add this mock
 }));
 const CandidateService = require("../src/services/candidate.service");
 
@@ -38,40 +39,111 @@ app.use("/", candidateRouter);
 describe("Candidate Controller", () => {
   afterEach(() => jest.clearAllMocks());
 
+  describe("GET /:id", () => {
+    it("should return 200 and candidate details when found", async () => {
+      const mockCandidate = {
+        success: true,
+        candidate: {
+          _id: "123",
+          name: "Test Candidate",
+          email: "test@example.com",
+          phone: "1234567890",
+          status: "ACTIVE"
+        },
+        offers: [
+          {
+            position: "Developer",
+            compensation: { total: 100000 }
+          }
+        ]
+      };
+
+      CandidateService.getCandidateWithOffers.mockResolvedValue(mockCandidate);
+
+      const res = await request(app).get("/123");
+      
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toEqual(mockCandidate);
+      expect(CandidateService.getCandidateWithOffers).toHaveBeenCalledWith("123", "hr123");
+    });
+
+    it("should return 404 when candidate not found", async () => {
+      CandidateService.getCandidateWithOffers.mockRejectedValue(new Error("Candidate not found"));
+
+      const res = await request(app).get("/123");
+      
+      expect(res.statusCode).toBe(404);
+      expect(res.body).toEqual({
+        success: false,
+        message: "Candidate not found"
+      });
+    });
+
+    it("should return 500 on server error", async () => {
+      CandidateService.getCandidateWithOffers.mockRejectedValue(new Error("Database error"));
+
+      const res = await request(app).get("/123");
+      
+      expect(res.statusCode).toBe(500);
+      expect(res.body).toEqual({
+        success: false,
+        message: "Internal server error while fetching candidate",
+        error: "Database error"
+      });
+    });
+  });
+
   describe("POST /check", () => {
+    const validCheckData = {
+      pan: "ABCDE1234F",
+      aadhaar: "123456789012",
+      email: "test@example.com",
+      phone: "9876543210"
+    };
+
     it("should return 400 if required fields are missing", async () => {
       const res = await request(app).post("/check").send({});
       expect(res.statusCode).toBe(400);
       expect(res.body.success).toBe(false);
+      expect(res.body.message).toContain("Missing required fields");
     });
 
     it("should return 200 and duplicate check result", async () => {
-      CandidateService.checkDuplicates.mockResolvedValue({
+      const mockResult = {
         hasDuplicates: false,
-        message: "No duplicates",
-        data: [],
-      });
-      const res = await request(app).post("/check").send({
-        pan: "P123",
-        aadhaar: "A123",
-        email: "a@b.com",
-        phone: "123",
-      });
+        message: "No duplicates found. Safe to proceed with offer.",
+        data: null
+      };
+
+      CandidateService.checkDuplicates.mockResolvedValue(mockResult);
+      
+      const res = await request(app)
+        .post("/check")
+        .send(validCheckData);
+      
       expect(res.statusCode).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(CandidateService.checkDuplicates).toHaveBeenCalled();
+      expect(res.body).toEqual({
+        success: true,
+        message: mockResult.message,
+        data: mockResult.data,
+        hasDuplicates: false
+      });
+      expect(CandidateService.checkDuplicates).toHaveBeenCalledWith(validCheckData);
     });
 
     it("should handle errors and return 500", async () => {
-      CandidateService.checkDuplicates.mockRejectedValue(new Error("fail"));
-      const res = await request(app).post("/check").send({
-        pan: "P123",
-        aadhaar: "A123",
-        email: "a@b.com",
-        phone: "123",
-      });
+      CandidateService.checkDuplicates.mockRejectedValue(new Error("Database error"));
+      
+      const res = await request(app)
+        .post("/check")
+        .send(validCheckData);
+      
       expect(res.statusCode).toBe(500);
-      expect(res.body.success).toBe(false);
+      expect(res.body).toEqual({
+        success: false,
+        message: "Internal server error during duplicate check",
+        error: "Database error"
+      });
     });
   });
 
@@ -198,21 +270,90 @@ describe("Candidate Controller", () => {
   });
 
   describe("GET /search", () => {
-    it("should return 200 and search results", async () => {
+    const mockSearchResults = {
+      success: true,
+      data: {
+        candidates: [
+          {
+            _id: "cand123",
+            name: "Test Candidate",
+            status: "ACTIVE",
+            location: { city: "Bangalore" },
+            profile: { totalExperience: 5 }
+          }
+        ],
+        pagination: {
+          page: 1,
+          limit: 10,
+          total: 1,
+          pages: 1
+        }
+      }
+    };
+
+    it("should return 200 and search results with no filters", async () => {
       CandidateService.searchCandidates.mockResolvedValue({
         success: true,
-        data: [],
+        data: mockSearchResults.data
       });
-      const res = await request(app).get("/search");
+      
+      const res = await request(app).get("/search").query({});
+      
       expect(res.statusCode).toBe(200);
-      expect(res.body.success).toBe(true);
+      expect(res.body).toEqual({
+        success: true,
+        data: mockSearchResults.data
+      });
+      expect(CandidateService.searchCandidates).toHaveBeenCalledWith(
+        {},
+        1,
+        10
+      );
+    });
+
+    it("should return 200 and search results with filters", async () => {
+      CandidateService.searchCandidates.mockResolvedValue({
+        success: true,
+        data: mockSearchResults.data
+      });
+      
+      const res = await request(app)
+        .get("/search")
+        .query({
+          status: "ACTIVE",
+          location: "Bangalore",
+          experience: "5",
+          page: "2",
+          limit: "20"
+        });
+      
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toEqual({
+        success: true,
+        data: mockSearchResults.data
+      });
+      expect(CandidateService.searchCandidates).toHaveBeenCalledWith(
+        {
+          status: "ACTIVE",
+          "location.city": { $regex: "Bangalore", $options: "i" },
+          "profile.totalExperience": { $gte: 5 }
+        },
+        2,
+        20
+      );
     });
 
     it("should handle errors and return 500", async () => {
-      CandidateService.searchCandidates.mockRejectedValue(new Error("fail"));
+      CandidateService.searchCandidates.mockRejectedValue(new Error("Database error"));
+      
       const res = await request(app).get("/search");
+      
       expect(res.statusCode).toBe(500);
-      expect(res.body.success).toBe(false);
+      expect(res.body).toEqual({
+        success: false,
+        message: "Internal server error while searching candidates",
+        error: "Database error"
+      });
     });
   });
 
@@ -253,54 +394,80 @@ describe("Candidate Controller", () => {
   });
 
   describe("POST /:id/communicate", () => {
+    const validCommunicateData = {
+      targetHrId: "hr456",
+      message: "Let's coordinate about the candidate",
+      communicationType: "WHATSAPP_COORDINATION"
+    };
+
     it("should return 400 if targetHrId or message missing", async () => {
       const res = await request(app).post("/123/communicate").send({});
       expect(res.statusCode).toBe(400);
       expect(res.body.success).toBe(false);
+      expect(res.body.message).toBe("Target HR ID and message are required");
     });
 
     it("should return 404 if target HR not found", async () => {
       CandidateService.getCandidateById.mockResolvedValue({
-        data: { name: "C" },
+        data: { name: "Test Candidate" }
       });
       const hrSchema = require("../src/models/hrSchema");
       hrSchema.Hr.findById.mockResolvedValue(null);
-      const res = await request(app).post("/123/communicate").send({
-        targetHrId: "hr2",
-        message: "msg",
-      });
+
+      const res = await request(app)
+        .post("/123/communicate")
+        .send(validCommunicateData);
+
       expect(res.statusCode).toBe(404);
-      expect(res.body.success).toBe(false);
+      expect(res.body).toEqual({
+        success: false,
+        message: "Target HR not found"
+      });
     });
 
-    it("should return 200 and communication data", async () => {
-      CandidateService.getCandidateById.mockResolvedValue({
-        data: { name: "C" },
-      });
+    it("should return 200 and communication data with whatsapp message", async () => {
+      const mockCandidate = {
+        data: { name: "Test Candidate" }
+      };
+      const mockTargetHr = {
+        name: "Target HR",
+        company: { name: "Target Company" },
+        whatsapp: { phoneNumber: "9876543210" }
+      };
+
+      CandidateService.getCandidateById.mockResolvedValue(mockCandidate);
       const hrSchema = require("../src/models/hrSchema");
-      hrSchema.Hr.findById.mockResolvedValue({
-        name: "HR2",
-        company: { name: "Co" },
-        whatsapp: { phoneNumber: "999" },
-      });
+      hrSchema.Hr.findById.mockResolvedValue(mockTargetHr);
       CandidateService.updateCandidateStatus.mockResolvedValue({});
-      const res = await request(app).post("/123/communicate").send({
-        targetHrId: "hr2",
-        message: "msg",
-      });
+
+      const res = await request(app)
+        .post("/123/communicate")
+        .send(validCommunicateData);
+
       expect(res.statusCode).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.data).toHaveProperty("whatsappMessage");
+      expect(res.body.data).toHaveProperty("targetHr");
+      expect(res.body.data.targetHr).toEqual({
+        name: mockTargetHr.name,
+        company: mockTargetHr.company.name,
+        whatsapp: mockTargetHr.whatsapp.phoneNumber
+      });
     });
 
     it("should handle errors and return 500", async () => {
-      CandidateService.getCandidateById.mockRejectedValue(new Error("fail"));
-      const res = await request(app).post("/123/communicate").send({
-        targetHrId: "hr2",
-        message: "msg",
-      });
+      CandidateService.getCandidateById.mockRejectedValue(new Error("Database error"));
+
+      const res = await request(app)
+        .post("/123/communicate")
+        .send(validCommunicateData);
+
       expect(res.statusCode).toBe(500);
-      expect(res.body.success).toBe(false);
+      expect(res.body).toEqual({
+        success: false,
+        message: "Internal server error while initiating communication",
+        error: "Database error"
+      });
     });
   });
 

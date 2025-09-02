@@ -2,6 +2,7 @@ const Candidate = require("../models/candidate");
 const Offer = require("../models/offer");
 const { Hr } = require("../models/hrSchema");
 const crypto = require("crypto");
+const { sendCompetitiveOfferEmail } = require("./compitativeOfferNotification");
 
 class CandidateService {
   static hashData(data) {
@@ -189,6 +190,21 @@ class CandidateService {
       const hashedPAN = this.hashData(pan);
       const hashedAadhaar = this.hashData(aadhaar);
 
+      // Ensure profile has required structure
+      const formattedProfile = {
+        currentCompany: profile?.currentCompany || "",
+        currentRole: profile?.currentRole || "",
+        totalExperience: profile?.totalExperience || 0,
+        skills: Array.isArray(profile?.skills) ? profile.skills : [],
+        salaryRange: {
+          min: profile?.salaryRange?.min || 0,
+          max: profile?.salaryRange?.max || 0,
+          currency: profile?.salaryRange?.currency || "INR",
+        },
+        noticePeriod: profile?.noticePeriod || 30,
+        immediateJoiner: profile?.immediateJoiner || false,
+      };
+
       // Create candidate
       const newCandidate = new Candidate({
         name,
@@ -198,7 +214,7 @@ class CandidateService {
         phone,
         whatsappNumber,
         location,
-        profile,
+        profile: formattedProfile,
         consent: {
           ...consent,
           consentDate: new Date(),
@@ -331,6 +347,35 @@ class CandidateService {
 
       // Save offer
       const savedOffer = await newOffer.save();
+
+      // 3. Notify other HRs if there are existing offers
+      if (existingActiveOffers.length > 0) {
+        console.log("Notifying other HRs about competitive offers");
+        const candidate = await Candidate.findById(candidateId).select("name");
+        const senderHr = await Hr.findById(hrId).select("name company.name");
+        const otherActiveOffers = await Offer.find({
+          candidateId,
+          status: "ACTIVE",
+          _id: { $ne: savedOffer._id },
+        }).populate("hrId", "name email company.name");
+
+        for (const offer of otherActiveOffers) {
+          if (
+            offer.hrId &&
+            offer.hrId.email &&
+            offer.hrId._id.toString() !== hrId.toString()
+          ) {
+            await sendCompetitiveOfferEmail({
+              to: offer.hrId.email,
+              candidateName: candidate.name,
+              competingHrName: senderHr.name,
+              competingCompany: senderHr.company.name,
+              offerPosition: savedOffer.position.title,
+              offerId: savedOffer._id,
+            });
+          }
+        }
+      }
 
       // Update competition for all existing active offers
       if (existingActiveOffers.length > 0) {

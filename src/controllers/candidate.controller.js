@@ -61,6 +61,7 @@ router.post("/offers/create", auth, async (req, res) => {
       name,
       location,
       profile,
+      skills, // Extract skills from request
       whatsappNumber,
       consent,
       // Offer fields
@@ -117,7 +118,10 @@ router.post("/offers/create", auth, async (req, res) => {
         phone,
         name,
         location,
-        profile,
+        profile: {
+          ...profile,
+          skills: skills || [], // Ensure skills are properly set
+        },
         whatsappNumber,
         consent,
       },

@@ -1,0 +1,108 @@
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 11:22:07"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 11:22:07"}
+{"level":"info","message":{"duration":"34ms","ip":"::1","method":"GET","status":304,"url":"/","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0"},"timestamp":"2025-09-02 11:23:20"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 18:17:12"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 18:17:12"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 18:17:39"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 18:17:39"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 18:18:16"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 18:18:16"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 18:21:20"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 18:21:20"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 18:22:23"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 18:22:23"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 18:22:33"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 18:22:33"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 18:23:27"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 18:23:27"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 18:27:36"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 18:27:36"}
+{"level":"info","message":{"duration":"31ms","ip":"::1","method":"GET","status":304,"url":"/?page=1&limit=3","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0"},"timestamp":"2025-09-02 18:27:44"}
+{"level":"info","message":{"duration":"31ms","ip":"::1","method":"GET","status":200,"url":"/","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0"},"timestamp":"2025-09-02 18:29:23"}
+{"level":"info","message":{"duration":"4ms","ip":"::1","method":"GET","status":200,"url":"/?page=1&limit=3","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0"},"timestamp":"2025-09-02 18:29:32"}
+{"level":"info","message":{"duration":"6ms","ip":"::1","method":"GET","status":404,"url":"/","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0"},"timestamp":"2025-09-02 18:29:33"}
+{"level":"info","message":{"duration":"5ms","ip":"::1","method":"GET","status":404,"url":"/","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0"},"timestamp":"2025-09-02 18:29:49"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 18:33:09"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 18:33:09"}
+{"level":"info","message":{"duration":"58ms","ip":"::1","method":"POST","status":201,"url":"/offers/create","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0"},"timestamp":"2025-09-02 18:34:35"}
+{"level":"info","message":{"duration":"42ms","ip":"::1","method":"GET","status":200,"url":"/?page=1&limit=3","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0"},"timestamp":"2025-09-02 18:34:35"}
+{"level":"info","message":{"duration":"7ms","ip":"::1","method":"GET","status":200,"url":"/68b6eb63140410bc2a3f9638","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0"},"timestamp":"2025-09-02 18:34:40"}
+{"level":"info","message":{"duration":"3ms","ip":"::1","method":"GET","status":400,"url":"/?page=1&limit=3","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"},"timestamp":"2025-09-02 18:35:36"}
+{"level":"info","message":{"duration":"5ms","ip":"::1","method":"GET","status":400,"url":"/?page=1&limit=3","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"},"timestamp":"2025-09-02 18:35:40"}
+{"level":"info","message":{"duration":"3ms","ip":"::1","method":"GET","status":400,"url":"/?page=1&limit=3","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"},"timestamp":"2025-09-02 18:35:47"}
+{"level":"info","message":{"duration":"101ms","ip":"::1","method":"POST","status":200,"url":"/login","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"},"timestamp":"2025-09-02 18:36:06"}
+{"level":"info","message":{"duration":"29ms","ip":"::1","method":"GET","status":200,"url":"/","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"},"timestamp":"2025-09-02 18:36:06"}
+{"level":"info","message":{"duration":"35ms","ip":"::1","method":"POST","status":200,"url":"/check","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"},"timestamp":"2025-09-02 18:36:23"}
+{"level":"info","message":{"duration":"23ms","ip":"::1","method":"POST","status":500,"url":"/68b6eb63140410bc2a3f9638/offer","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"},"timestamp":"2025-09-02 18:39:11"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 18:44:29"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 18:44:29"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 18:44:32"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 18:44:32"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 18:44:34"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 18:44:34"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 18:45:17"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 18:45:17"}
+{"level":"info","message":{"duration":"73ms","ip":"::1","method":"GET","status":200,"url":"/?page=1&limit=3","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0"},"timestamp":"2025-09-02 18:45:43"}
+{"level":"info","message":{"duration":"12ms","ip":"::1","method":"GET","status":200,"url":"/?page=1&limit=3","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"},"timestamp":"2025-09-02 18:45:55"}
+{"level":"info","message":{"duration":"6ms","ip":"::1","method":"GET","status":200,"url":"/68b6eb63140410bc2a3f9638","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"},"timestamp":"2025-09-02 18:46:03"}
+{"level":"info","message":{"duration":"36ms","ip":"::1","method":"DELETE","status":200,"url":"/68b6ec77140410bc2a3f9657","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"},"timestamp":"2025-09-02 18:46:09"}
+{"level":"info","message":{"duration":"7ms","ip":"::1","method":"GET","status":200,"url":"/68b6eb63140410bc2a3f9638","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"},"timestamp":"2025-09-02 18:46:12"}
+{"level":"info","message":{"duration":"9ms","ip":"::1","method":"GET","status":200,"url":"/?page=1&limit=3","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"},"timestamp":"2025-09-02 18:46:25"}
+{"level":"info","message":{"duration":"35ms","ip":"::1","method":"POST","status":200,"url":"/check","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"},"timestamp":"2025-09-02 18:48:13"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 18:51:52"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 18:51:52"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 18:52:06"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 18:52:06"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 18:52:34"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 18:52:34"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 18:52:35"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 18:52:35"}
+{"level":"info","message":{"duration":"40ms","ip":"::1","method":"GET","status":200,"url":"/?page=1&limit=3","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"},"timestamp":"2025-09-02 18:52:41"}
+{"level":"info","message":{"duration":"7ms","ip":"::1","method":"GET","status":200,"url":"/68b6eb63140410bc2a3f9638","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"},"timestamp":"2025-09-02 18:52:44"}
+{"level":"info","message":{"duration":"44ms","ip":"::1","method":"DELETE","status":200,"url":"/68b6eec903fe5129fb18c7f6","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"},"timestamp":"2025-09-02 18:52:48"}
+{"level":"info","message":{"duration":"10ms","ip":"::1","method":"GET","status":200,"url":"/68b6eb63140410bc2a3f9638","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"},"timestamp":"2025-09-02 18:52:50"}
+{"level":"info","message":{"duration":"51ms","ip":"::1","method":"POST","status":200,"url":"/check","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"},"timestamp":"2025-09-02 18:52:59"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 18:55:22"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 18:55:22"}
+{"level":"info","message":{"duration":"25ms","ip":"::ffff:127.0.0.1","method":"GET","status":200,"url":"/?page=1&limit=3","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"},"timestamp":"2025-09-02 18:55:33"}
+{"level":"info","message":{"duration":"9ms","ip":"::1","method":"GET","status":200,"url":"/68b6eb63140410bc2a3f9638","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"},"timestamp":"2025-09-02 18:55:44"}
+{"level":"info","message":{"duration":"27ms","ip":"::1","method":"DELETE","status":200,"url":"/68b6f04225808ec76a81433b","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"},"timestamp":"2025-09-02 18:55:47"}
+{"level":"info","message":{"duration":"27ms","ip":"::1","method":"DELETE","status":200,"url":"/68b6efd4e0de5d65c99c7631","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"},"timestamp":"2025-09-02 18:55:50"}
+{"level":"info","message":{"duration":"11ms","ip":"::1","method":"GET","status":200,"url":"/68b6eb63140410bc2a3f9638","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"},"timestamp":"2025-09-02 18:55:52"}
+{"level":"info","message":{"duration":"15ms","ip":"::1","method":"GET","status":200,"url":"/?page=1&limit=3","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"},"timestamp":"2025-09-02 18:55:54"}
+{"level":"info","message":{"duration":"6ms","ip":"::1","method":"GET","status":404,"url":"/","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"},"timestamp":"2025-09-02 18:55:58"}
+{"level":"info","message":{"duration":"18ms","ip":"::1","method":"GET","status":304,"url":"/","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"},"timestamp":"2025-09-02 18:56:00"}
+{"level":"info","message":{"duration":"64ms","ip":"::1","method":"POST","status":200,"url":"/check","userAgent":"Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Mobile Safari/537.36"},"timestamp":"2025-09-02 18:56:40"}
+{"level":"info","message":{"duration":"161336ms","ip":"::1","method":"POST","status":500,"url":"/68b6eb63140410bc2a3f9638/offer","userAgent":"Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Mobile Safari/537.36"},"timestamp":"2025-09-02 19:00:00"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 19:01:21"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 19:01:21"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 19:01:42"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 19:01:42"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 19:02:17"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 19:02:17"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 19:02:43"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 19:02:43"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 19:03:06"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 19:03:06"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 19:04:34"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 19:04:34"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 19:14:26"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 19:14:26"}
+{"level":"info","message":{"duration":"48ms","ip":"::1","method":"GET","status":200,"url":"/","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"},"timestamp":"2025-09-02 19:19:10"}
+{"level":"info","message":{"duration":"17ms","ip":"::1","method":"GET","status":200,"url":"/?page=1&limit=3","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"},"timestamp":"2025-09-02 19:19:14"}
+{"level":"info","message":{"duration":"5ms","ip":"::1","method":"GET","status":404,"url":"/","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"},"timestamp":"2025-09-02 19:20:32"}
+{"level":"info","message":{"duration":"3ms","ip":"::1","method":"GET","status":404,"url":"/","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"},"timestamp":"2025-09-02 19:20:36"}
+{"level":"info","message":{"duration":"9ms","ip":"::1","method":"GET","status":404,"url":"/","userAgent":"Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Mobile Safari/537.36"},"timestamp":"2025-09-02 19:20:43"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 19:23:23"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 19:23:23"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 19:24:04"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 19:24:04"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 19:24:12"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 19:24:12"}
+{"level":"info","message":{"duration":"25ms","ip":"::1","method":"GET","status":404,"url":"/","userAgent":"Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Mobile Safari/537.36"},"timestamp":"2025-09-02 19:24:24"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 19:25:10"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 19:25:10"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 19:28:02"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 19:28:02"}
+{"level":"info","message":"✅ Database connected successfully","timestamp":"2025-09-02 19:28:20"}
+{"level":"info","message":"Server is running on port 4001","timestamp":"2025-09-02 19:28:20"}

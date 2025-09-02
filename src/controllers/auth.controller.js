@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router(); 
-const Hr = require('../models/hrSchema');
+const { Hr, validateHRUpdate } = require('../models/hrSchema');
 const {registerHRService,loginHRService} = require('../services/auth.service')
 const jwt = require('jsonwebtoken');
 const config= require("config");
+const authMiddleware = require('../middleware/auth');
 
 
 router.post('/register', async (req, res) => {
@@ -55,5 +56,64 @@ router.post('/login', async(req, res)=>{
         });
     }
 })
+
+
+router.get('/myProfile', authMiddleware, async(req, res)=>{
+    try {
+        const hr = await Hr.findById(req.user.id).select('-password');
+        
+        if (!hr) {
+            return res.status(404).json({ error: "HR profile not found" });
+        }
+
+        res.status(200).json({
+            message: "Profile fetched successfully",
+            data: hr
+        });
+        
+    } catch (error) {
+        console.error('Error in getHRProfile:', error.message);
+        res.status(500).json({
+            error: error.message || 'Internal Server Error'
+        });
+    }
+});
+
+router.put('/updateProfile', authMiddleware, async(req, res) => {
+    try {
+        // Validate the update data
+        const { error } = validateHRUpdate(req.body);
+        if (error) {
+            return res.status(400).json({ error: error.details[0].message });
+        }
+
+        // Find and update the HR profile
+        const updatedHR = await Hr.findByIdAndUpdate(
+            req.user.id,
+            { 
+                $set: {
+                    ...req.body,
+                    updatedAt: new Date()
+                }
+            },
+            { new: true, runValidators: true }
+        ).select('-password');
+
+        if (!updatedHR) {
+            return res.status(404).json({ error: "HR profile not found" });
+        }
+
+        res.status(200).json({
+            message: "Profile updated successfully",
+            data: updatedHR
+        });
+
+    } catch (error) {
+        console.error('Error in updateHRProfile:', error.message);
+        res.status(500).json({
+            error: error.message || 'Internal Server Error'
+        });
+    }
+});
 
 module.exports = router;
