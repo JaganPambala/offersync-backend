@@ -183,7 +183,10 @@ class OfferService {
       const skip = (finalPage - 1) * validatedLimit;
 
       // Get paginated candidates while preserving order
-      const paginatedCandidates = uniqueCandidates.slice(skip, skip + validatedLimit);
+      const paginatedCandidates = uniqueCandidates.slice(
+        skip,
+        skip + validatedLimit
+      );
 
       // Keep your existing candidate and offers fetching logic
       const candidatesWithOffers = await Promise.all(
@@ -208,8 +211,8 @@ class OfferService {
               total:
                 offer.compensation.total ??
                 (offer.compensation.base || 0) +
-                (offer.compensation.variable || 0) +
-                (offer.compensation.bonus || 0),
+                  (offer.compensation.variable || 0) +
+                  (offer.compensation.bonus || 0),
             },
             status: offer.status,
             priority: offer.priority,
@@ -249,11 +252,11 @@ class OfferService {
           limit: validatedLimit,
           pages: totalPages,
           hasNextPage: finalPage < totalPages,
-          hasPreviousPage: finalPage > 1
+          hasPreviousPage: finalPage > 1,
         },
       };
     } catch (error) {
-      console.error('Error in listOffers:', error);
+      console.error("Error in listOffers:", error);
       throw new Error(`Error fetching offers: ${error.message}`);
     }
   }
@@ -281,7 +284,7 @@ class OfferService {
 
     const candidateId = offer.candidateId._id;
 
-    // ❌ Prevent ACCEPTED → ACTIVE directly
+    // Prevent ACCEPTED → ACTIVE directly
     if (offer.status === "ACCEPTED" && status === "ACTIVE") {
       throw new Error(
         "Invalid transition: Cannot move from ACCEPTED back to ACTIVE."

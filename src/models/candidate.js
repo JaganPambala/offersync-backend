@@ -1,45 +1,45 @@
+const Joi = require("joi");
+const mongoose = require("mongoose");
 
-const Joi = require('joi');
-const mongoose = require('mongoose');
-
-const candidateSchema = new mongoose.Schema({
+const candidateSchema = new mongoose.Schema(
+  {
     // Personal Info (Encrypted)
     name: {
       type: String,
       required: true,
       trim: true,
-      maxlength: 100
+      maxlength: 100,
     },
     hashedPAN: {
       type: String,
       required: true,
       unique: true,
-      index: true
+      index: true,
     },
     hashedAadhaar: {
       type: String,
       required: true,
       unique: true,
-      index: true
+      index: true,
     },
     email: {
       type: String,
       required: true,
-      lowercase: true
+      lowercase: true,
     },
     phone: {
       type: String,
-      required: true
+      required: true,
     },
     whatsappNumber: String,
-    
+
     // Location
     location: {
       city: String,
       state: String,
-      country: { type: String, default: 'India' }
+      country: { type: String, default: "India" },
     },
-    
+
     // Professional Profile
     profile: {
       currentCompany: String,
@@ -49,20 +49,27 @@ const candidateSchema = new mongoose.Schema({
       salaryRange: {
         min: Number,
         max: Number,
-        currency: { type: String, default: 'INR' }
+        currency: { type: String, default: "INR" },
       },
       noticePeriod: { type: Number, default: 30 }, // days
-      immediateJoiner: { type: Boolean, default: false }
+      immediateJoiner: { type: Boolean, default: false },
     },
-    
+
     // Core Status Management
     status: {
       type: String,
-      enum: ['AVAILABLE', 'OFFERED', 'MULTIPLE_OFFERS', 'ACCEPTED', 'JOINED', 'WITHDRAWN'],
-      default: 'AVAILABLE',
-      index: true
+      enum: [
+        "AVAILABLE",
+        "OFFERED",
+        "MULTIPLE_OFFERS",
+        "ACCEPTED",
+        "JOINED",
+        "WITHDRAWN",
+      ],
+      default: "AVAILABLE",
+      index: true,
     },
-    
+
     // Growth Metrics
     metrics: {
       totalOffers: { type: Number, default: 0 },
@@ -70,39 +77,50 @@ const candidateSchema = new mongoose.Schema({
       acceptedOffers: { type: Number, default: 0 },
       averageOfferValue: Number,
       highestOfferValue: Number,
-      totalCommunications: { type: Number, default: 0 }
+      totalCommunications: { type: Number, default: 0 },
     },
-    
+
     // Communication Tracking
-    communications: [{
-      withHrId: { type: mongoose.Schema.Types.ObjectId, ref: 'Hr' },
-      status: { type: String, enum: ['ACTIVE', 'RESOLVED'], default: 'ACTIVE' },
-      startedAt: { type: Date, default: Date.now },
-      resolvedAt: Date
-    }],
-    
+    communications: [
+      {
+        withHrId: { type: mongoose.Schema.Types.ObjectId, ref: "Hr" },
+        status: {
+          type: String,
+          enum: ["ACTIVE", "RESOLVED"],
+          default: "ACTIVE",
+        },
+        startedAt: { type: Date, default: Date.now },
+        resolvedAt: Date,
+      },
+    ],
+
     // Privacy & Consent
     consent: {
       dataSharing: { type: Boolean, default: false },
       whatsappContact: { type: Boolean, default: false },
       marketingEmails: { type: Boolean, default: false },
-      consentDate: Date
+      consentDate: Date,
     },
-    
+
     // Metadata
     source: {
-      addedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Hr' },
-      method: { type: String, enum: ['MANUAL', 'BULK_UPLOAD', 'API'], default: 'manual' }
+      addedBy: { type: mongoose.Schema.Types.ObjectId, ref: "Hr" },
+      method: {
+        type: String,
+        enum: ["MANUAL", "BULK_UPLOAD", "API"],
+        default: "manual",
+      },
     },
-    
+
     // Timestamps
     createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now }
-  }, {
-    timestamps: true
-  });
-  
+    updatedAt: { type: Date, default: Date.now },
+  },
+  {
+    timestamps: true,
+  }
+);
 
-const Candidate = mongoose.model('Candidate', candidateSchema);
+const Candidate = mongoose.model("Candidate", candidateSchema);
 
 module.exports = Candidate;

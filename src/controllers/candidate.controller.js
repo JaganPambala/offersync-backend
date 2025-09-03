@@ -51,6 +51,7 @@ router.post("/check", auth, async (req, res) => {
 
 // NEW: Comprehensive candidate + offer creation API
 router.post("/offers/create", auth, async (req, res) => {
+  const { profile } = req.body;
   try {
     const {
       // Candidate fields
@@ -60,7 +61,11 @@ router.post("/offers/create", auth, async (req, res) => {
       phone,
       name,
       location,
-      profile,
+      currentCompany,
+      currentRole,
+      totalExperience,
+      noticePeriod,
+      immediateJoiner,
       skills, // Extract skills from request
       whatsappNumber,
       consent,
@@ -119,7 +124,11 @@ router.post("/offers/create", auth, async (req, res) => {
         name,
         location,
         profile: {
-          ...profile,
+          currentCompany,
+          currentRole,
+          totalExperience,
+          noticePeriod,
+          immediateJoiner,
           skills: skills || [], // Ensure skills are properly set
         },
         whatsappNumber,

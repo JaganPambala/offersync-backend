@@ -182,7 +182,7 @@ router.get("/", auth, async (req, res) => {
     if (!communications || communications.length === 0) {
       return res.status(404).json({
         success: false,
-        message: "No communications found",
+        error: "No communications found",
       });
     }
 
