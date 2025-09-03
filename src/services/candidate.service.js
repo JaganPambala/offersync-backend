@@ -39,7 +39,7 @@ class CandidateService {
       // Get existing offers for duplicate candidates
       const duplicateOffers = await Offer.find({
         candidateId: { $in: duplicates.map((d) => d._id) },
-        status: { $in: ["ACTIVE", "ACCEPTED", "ON_HOLD"] },
+        status: { $in: ["ACTIVE", "ACCEPTED", "ON_HOLD","JOINED"] },
       }).populate("hrId", "name company.name whatsapp.phoneNumber");
 
       console.log("duplicateOffers---------", duplicateOffers);
@@ -301,6 +301,29 @@ class CandidateService {
    */
   static async createOfferForExistingCandidate(candidateId, offerData, hrId) {
     try {
+
+      const candidate = await Candidate.findById(candidateId).select("name status");
+      if (!candidate) {
+        throw new Error("Candidate not found");
+      }
+
+
+      if(candidate.status === "JOINED"){
+        throw new Error(`Candidate ${candidate.name} has already joined a company. No further offers are allowed.`);
+      }
+
+
+
+
+
+
+
+
+
+
+
+
+
       // Calculate competition based on existing offers
       const existingActiveOffers = await Offer.find({
         candidateId,
